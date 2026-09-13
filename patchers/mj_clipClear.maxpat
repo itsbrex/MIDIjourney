@@ -46,7 +46,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 511.875, 409.0, 204.0, 22.0 ],
-					"text" : "remove_notes_extended 0 127 0. $1"
+					"text" : "remove_notes_extended 0 128 0. $1"
 				}
 
 			}
@@ -58,7 +58,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 360.875, 409.0, 145.0, 22.0 ],
-					"text" : "remove_notes 0 0 $1 127"
+					"text" : "remove_notes 0 0 $1 128"
 				}
 
 			}
@@ -507,7 +507,7 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 361.375, 511.0, 62.0, 22.0 ],
 					"saved_object_attributes" : 					{
-						"_persistence" : 1
+						"_persistence" : 0
 					}
 ,
 					"text" : "live.object"

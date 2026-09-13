@@ -692,7 +692,7 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 476.0, 417.87911767696005, 62.0, 22.0 ],
 					"saved_object_attributes" : 					{
-						"_persistence" : 1
+						"_persistence" : 0
 					}
 ,
 					"text" : "live.object"

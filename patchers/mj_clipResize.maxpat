@@ -218,9 +218,9 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 3,
-					"outlettype" : [ "bang", "bang", "float" ],
+					"outlettype" : [ "bang", "float", "bang" ],
 					"patching_rect" : [ 298.5, 201.0, 40.0, 22.0 ],
-					"text" : "t b b f"
+					"text" : "t b f b"
 				}
 
 			}
@@ -232,6 +232,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 468.0, 339.952393000000029, 94.0, 22.0 ],
+					"comment" : "Set the end boundary without changing the clip's looped/unlooped mode.",
 					"text" : "set loop_end $1"
 				}
 
@@ -244,6 +245,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 364.5, 339.952393000000029, 94.0, 22.0 ],
+					"comment" : "Set the start boundary first; Live applies loop_start to both looped and unlooped clips.",
 					"text" : "set loop_start 0."
 				}
 
@@ -269,7 +271,7 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 298.5, 390.952393000000029, 62.0, 22.0 ],
 					"saved_object_attributes" : 					{
-						"_persistence" : 1
+						"_persistence" : 0
 					}
 ,
 					"text" : "live.object"
@@ -327,7 +329,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-6", 0 ],
+					"destination" : [ "obj-13", 0 ],
 					"source" : [ "obj-15", 0 ]
 				}
 
@@ -439,7 +441,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-13", 0 ],
+					"destination" : [ "obj-6", 0 ],
 					"source" : [ "obj-8", 2 ]
 				}
 

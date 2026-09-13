@@ -1,22 +1,37 @@
 {
-  "name": "midi-journey",
-  "version": "2.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "midijourney",
+  "version": "3.0.0",
+  "description": "Pollinations-powered MIDI generation for Ableton Live",
+  "private": true,
+  "main": "midiJourney.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test",
+    "check": "node --check build-release.js && node --check midiJourney.js && node --check pollinationsAuth.js && node --check pollinationsClient.js && node --check systemPrompt.js && node --check credentialStore.js && node --check sanitize.js",
+    "build:release": "node build-release.js",
+    "prepare:max-release": "node ../scripts/prepare-max-release-project.js",
+    "build:max-release": "npm run build:release && npm run prepare:max-release",
+    "verify:max-release-candidate": "node ../scripts/verify-max-release-candidate.js",
+    "finalize:max-release": "node ../scripts/finalize-max-release.js",
+    "test:release-portability": "node ../scripts/test-release-portability.js",
+    "check:patchers": "node ../scripts/verify-max-patchers.js",
+    "configure:release": "node ../scripts/configure-release-app-key.js",
+    "verify": "npm run check && npm test && npm run test:release-portability && npm run check:patchers"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "ableton-live",
+    "max-for-live",
+    "midi",
+    "pollinations"
+  ],
+  "author": "Pixelynx KORUS Labs",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "@tonaljs/tonal": "^4.10.0",
-    "configstore": "^6.0.0",
-    "dotenv": "^16.3.1",
-    "js-yaml": "^4.1.0",
-    "node-abort-controller": "^3.1.1",
-    "openai": "^3.3.0",
-    "ramda": "^0.29.0",
-    "tonal": "^5.0.0"
+    "@pollinations/sdk": "5.0.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "0.44.1"
   }
 }

@@ -698,6 +698,45 @@
 				}
 
 			}
+,			{
+				"box" : 				{
+					"hidden" : 1,
+					"id" : "obj-history-restore-route",
+					"maxclass" : "newobj",
+					"numinlets" : 2,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "" ],
+					"patching_rect" : [ 25.0, 480.0, 124.0, 22.0 ],
+					"text" : "route restoreHistory"
+				}
+
+			}
+,			{
+				"box" : 				{
+					"hidden" : 1,
+					"id" : "obj-history-restore-unpack",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 155.0, 480.0, 111.0, 22.0 ],
+					"text" : "dict.unpack history: @legacy 0"
+				}
+
+			}
+,			{
+				"box" : 				{
+					"hidden" : 1,
+					"id" : "obj-history-restore-replace",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 155.0, 540.0, 139.0, 22.0 ],
+					"text" : "prepend replace history"
+				}
+
+			}
 , 			{
 				"box" : 				{
 					"id" : "obj-19",
@@ -1020,6 +1059,15 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-16", 0 ],
+					"order" : 1,
+					"source" : [ "obj-13", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-8", 0 ],
+					"order" : 0,
 					"source" : [ "obj-13", 0 ]
 				}
 
@@ -1131,6 +1179,13 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-23", 0 ],
+					"source" : [ "obj-28", 1 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-19", 1 ],
 					"source" : [ "obj-3", 0 ]
 				}
@@ -1208,14 +1263,51 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-19", 0 ],
+					"destination" : [ "obj-history-restore-route", 0 ],
 					"source" : [ "obj-7", 0 ]
+				}
+
+			}
+,			{
+				"patchline" : 				{
+					"destination" : [ "obj-history-restore-unpack", 0 ],
+					"source" : [ "obj-history-restore-route", 0 ]
+				}
+
+			}
+,			{
+				"patchline" : 				{
+					"destination" : [ "obj-history-restore-replace", 0 ],
+					"source" : [ "obj-history-restore-unpack", 0 ]
+				}
+
+			}
+,			{
+				"patchline" : 				{
+					"destination" : [ "obj-22", 1 ],
+					"source" : [ "obj-history-restore-replace", 0 ]
+				}
+
+			}
+,			{
+				"patchline" : 				{
+					"destination" : [ "obj-19", 0 ],
+					"source" : [ "obj-history-restore-route", 1 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-19", 1 ],
+					"order" : 1,
+					"source" : [ "obj-8", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-23", 0 ],
+					"order" : 0,
 					"source" : [ "obj-8", 0 ]
 				}
 

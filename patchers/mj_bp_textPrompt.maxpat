@@ -830,21 +830,18 @@
 ,
 		"dependency_cache" : [ 			{
 				"name" : "mj_colorControl.maxpat",
-				"bootpath" : "~/Documents/GitHub/MidiJourney/patchers",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "mj_route.maxpat",
-				"bootpath" : "~/Documents/GitHub/MidiJourney/patchers",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "mj_routeDict.maxpat",
-				"bootpath" : "~/Documents/GitHub/MidiJourney/patchers",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1

@@ -4,4 +4,7 @@ device/packages
 npm-debug.log
 yarn-error.log
 .env
+js/config.release.js
+js/midiJourney.release.js
+.release-max-project/
 .DS_Store

@@ -1,0 +1,45 @@
+name: Verify V3
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  node-and-max-source:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - node: "18.18.0"
+            full_release_verification: false
+          - node: "20.17.0"
+            full_release_verification: true
+          - node: "22.21.1"
+            full_release_verification: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: js/package-lock.json
+      - name: Install pinned dependency
+        working-directory: js
+        run: npm ci --ignore-scripts
+      - name: Verify application layer
+        if: ${{ !matrix.full_release_verification }}
+        working-directory: js
+        run: npm run check && npm test && npm run test:release-portability
+      - name: Verify application, patchers, and frozen AMXD
+        if: ${{ matrix.full_release_verification }}
+        working-directory: js
+        run: npm run verify
+      - name: Audit production dependency
+        if: matrix.node == '22.21.1'
+        working-directory: js
+        run: npm audit --omit=dev
