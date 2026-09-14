@@ -15,6 +15,11 @@ const fixture = { title: "Persistent bridge test", duration: 4, notes: [
   { pitch: 60, start_time: 0, duration: 1, velocity: 96 },
   { pitch: 67, start_time: 2, duration: 1, velocity: 104 },
 ] };
+function clipObject(duration, notes = [], name = "") {
+  return { name: [name], is_midi_clip: [1], is_recording: [0], is_overdubbing: [0],
+    looping: [1], loop_start: [0], loop_end: [duration], start_marker: [0], end_marker: [duration],
+    length: [duration], notes: structuredClone(notes) };
+}
 function harness() {
   const objects = new Map([
     [1, { selected_track: ["id", 10], highlighted_clip_slot: ["id", 20], detail_clip: ["id", 0] }],
@@ -26,7 +31,7 @@ function harness() {
     [21, { canonical_parent: ["id", 10], has_clip: [0], clip: ["id", 0] }],
     [22, { canonical_parent: ["id", 11], has_clip: [0], clip: ["id", 0] }],
   ]);
-  const calls = [], responses = [], queue = [], dicts = new Map();
+  const calls = [], responses = [], queue = [], dicts = new Map(), faults = {};
   let counter = 100;
   class Dict {
     constructor(name) { this.name = name || `dict-${++counter}`; }
@@ -37,7 +42,18 @@ function harness() {
   class LiveAPI {
     constructor(_, path) { this.id = path === "live_set view" ? 1 : path === "live_set" ? 2 : path === "live_app view" ? 3 : Number(path.slice(3)); }
     get(name) { if (!objects.has(this.id)) throw new Error("Deleted"); return objects.get(this.id)[name]; }
-    set(name, value) { calls.push([this.id, "set", name]); objects.get(this.id)[name] = [value]; }
+    set(name, value) {
+      calls.push([this.id, "set", name]);
+      if (faults.set === name) throw new Error("Fixture rejected property write");
+      const object = objects.get(this.id);
+      const pairs = { loop_start: "loop_end", start_marker: "end_marker", loop_end: "loop_start", end_marker: "start_marker" };
+      if (pairs[name]) {
+        const other = object[pairs[name]][0];
+        assert.ok(name.endsWith("start") || name === "start_marker" ? value < other : value > other, "Live marker ordering");
+      }
+      object[name] = [value];
+      object.length = [object.looping[0] ? object.loop_end[0] - object.loop_start[0] : object.end_marker[0] - object.start_marker[0]];
+    }
     call(name, ...args) {
       calls.push([this.id, name]);
       const object = objects.get(this.id);
@@ -45,7 +61,7 @@ function harness() {
       if (name === "create_clip") {
         assert.equal(object.has_clip[0], 0);
         const id = ++counter;
-        objects.set(id, { name: [""], is_midi_clip: [1], length: [args[0]], notes: [] });
+        objects.set(id, clipObject(args[0]));
         object.clip = ["id", id]; object.has_clip = [1];
         return;
       }
@@ -56,7 +72,16 @@ function harness() {
       if (name === "add_new_notes") {
         assert.equal(args.length, 1, "JS LiveAPI takes one Dict, not a dictionary/name message");
         assert.ok(args[0] instanceof Dict);
-        object.notes = structuredClone(dicts.get(args[0].name).notes);
+        if (faults.add) throw new Error("Fixture rejected notes");
+        object.notes.push(...structuredClone(dicts.get(args[0].name).notes));
+        return;
+      }
+      if (name === "remove_notes_extended") {
+        if (faults.remove === "throw") throw new Error("Fixture rejected removal");
+        if (faults.remove !== "ignore") {
+          const [pitch, pitches, time, beats] = args;
+          object.notes = object.notes.filter(n => !(n.pitch >= pitch && n.pitch < pitch + pitches && n.start_time >= time && n.start_time < time + beats));
+        }
         return;
       }
       throw new Error(`Unsupported Live API function: ${name}`);
@@ -72,14 +97,14 @@ function harness() {
     outlet: (...args) => { if (args[1] === "response") responses.push({ id: args[2], ...JSON.parse(args[3]) }); } });
   vm.runInContext(source, context);
   context.init();
-  return { context, objects, calls, responses,
+  return { context, objects, calls, responses, faults,
     select(track, slot) {
       objects.get(1).selected_track = ["id", track]; objects.get(1).highlighted_clip_slot = ["id", slot];
       objects.get(1).detail_clip = objects.get(slot)?.clip || ["id", 0];
     },
     target(fresh = false) { context.context("target", fresh); return responses.at(-1).context; },
     input(notes = fixture.notes) {
-      objects.set(30, { name: [fixture.title], is_midi_clip: [1], length: [fixture.duration], notes: structuredClone(notes) });
+      objects.set(30, clipObject(fixture.duration, notes, fixture.title));
       objects.get(20).has_clip = [1]; objects.get(20).clip = ["id", 30]; this.select(10, 20);
       return objects.get(30);
     },
@@ -141,19 +166,133 @@ test("read-back mismatch reports the exact field without silently accepting it",
   assert.match(h.responses.at(-1).error, /duration differs by 0.010000/);
   assert.equal(h.calls.filter(c => c[1] === "add_new_notes").length, 1);
 });
-test("occupied source clip stays unchanged and the next empty slot is used", () => {
-  const h = harness(); h.create(); h.flush();
-  h.select(10, 20);
-  const original = h.objects.get(h.objects.get(20).clip[1]);
-  const before = structuredClone(original);
+test("occupied clip is replaced in place, never redirected to an empty slot", () => {
+  const h = harness(), original = h.input();
+  original.color = [123]; original.envelopes = { volume: [0.5] };
+  const unrelated = structuredClone(h.objects.get(21));
   const target = h.target();
-  assert.equal(target.destination, "One · empty slot 2");
+  assert.equal(target.destination, "One · clip 1");
   assert.equal(target.source.notes.length, 2);
-  h.create("next", target.target); h.flush();
+  const replacement = { ...fixture, title: "New melody", duration: 2, notes: [{ ...fixture.notes[0], pitch: 72, duration: 0.5 }] };
+  h.create("next", target.target, replacement); h.flush();
   assert.equal(h.responses.at(-1).ok, true);
+  assert.equal(h.objects.get(20).clip[1], 30);
+  assert.deepEqual(original.notes, replacement.notes.map(n => ({...n, mute: 0})));
+  assert.equal(original.name[0], "New melody"); assert.equal(original.length[0], 2);
+  assert.deepEqual(original.color, [123]); assert.deepEqual(original.envelopes, { volume: [0.5] });
+  assert.deepEqual(h.objects.get(21), unrelated);
+  assert.equal(h.calls.filter(c => c[1] === "create_clip").length, 0);
+  assert.equal(h.target().source.notes[0].pitch, 72, "replacement invalidates cached MIDI input");
+  assert.equal(h.target().connected, true);
+});
+
+test("replacement removes every old note, including muted, negative and out-of-loop notes", () => {
+  const h = harness();
+  const original = h.input([
+    { pitch: 0, start_time: -12, duration: 2, velocity: 44, mute: 1 },
+    { pitch: 127, start_time: 12000, duration: 1, velocity: 90, mute: 0 },
+  ]);
+  h.create(); h.flush();
+  assert.equal(h.responses.at(-1).ok, true);
+  assert.deepEqual(original.notes, fixture.notes.map(n => ({...n, mute: 0})));
+  assert.equal(h.calls.filter(c => c[1] === "remove_notes_extended").length, 1);
+});
+
+test("empty existing clips and full tracks remain valid replacement destinations", () => {
+  const h = harness(), original = h.input([]);
+  h.objects.get(21).has_clip = [1]; h.objects.get(21).clip = ["id", 999];
+  assert.equal(h.target().connected, true);
+  h.create(); h.flush();
+  assert.equal(h.responses.at(-1).ok, true);
+  assert.equal(h.objects.get(20).clip[1], 30);
+  assert.equal(original.notes.length, fixture.notes.length);
+  assert.equal(h.calls.filter(c => /create_clip|remove_notes_extended/.test(c[1])).length, 0);
+});
+
+test("replacement resets offset markers for shorter, longer, negative and unlooped clips", () => {
+  for (const [start, end, looping, duration] of [[12, 32, 1, 2], [-8, -4, 1, 16], [2, 3, 0, 8], [0, 32, 0, 1]]) {
+    const h = harness(), original = h.input();
+    original.loop_start = original.start_marker = [start];
+    original.loop_end = original.end_marker = [end];
+    original.looping = [looping]; original.length = [end - start];
+    h.create("resize", h.target().target, { ...fixture, duration, notes: [fixture.notes[0]] }); h.flush();
+    assert.equal(h.responses.at(-1).ok, true);
+    assert.deepEqual([original.loop_start[0], original.start_marker[0], original.loop_end[0], original.end_marker[0]], [0, 0, duration, duration]);
+    assert.equal(original.length[0], duration); assert.equal(original.looping[0], looping);
+  }
+});
+
+test("stale occupied targets, recording clips and audio clips cannot be replaced", () => {
+  const mutations = h => h.calls.filter(c => /^(set|create_clip|remove_notes_extended|add_new_notes)$/.test(c[1]));
+  for (const property of ["is_recording", "is_overdubbing", "is_midi_clip"]) {
+    const h = harness(), original = h.input(), old = h.target().target;
+    original[property] = [property === "is_midi_clip" ? 0 : 1];
+    h.create("unsafe", old); h.flush();
+    assert.equal(h.responses.at(-1).ok, false); assert.equal(mutations(h).length, 0);
+  }
+  for (const newId of [0, 31]) {
+    const h = harness(), original = h.input(), old = h.target().target;
+    const before = structuredClone(original);
+    h.objects.set(31, clipObject(4, fixture.notes));
+    h.objects.get(20).clip = ["id", newId]; h.objects.get(20).has_clip = [newId ? 1 : 0];
+    h.create("stale", old); h.flush();
+    assert.match(h.responses.at(-1).error, /selection changed/);
+    assert.deepEqual(original, before); assert.equal(mutations(h).length, 0);
+  }
+});
+
+test("a formerly empty slot becoming occupied is rejected rather than silently overwritten", () => {
+  const h = harness(), old = h.target().target;
+  const original = h.input(), before = structuredClone(original);
+  h.create("stale-empty", old); h.flush();
+  assert.match(h.responses.at(-1).error, /selection changed/);
   assert.deepEqual(original, before);
-  assert.equal(h.target().connected, false);
-  assert.equal(h.target().source.notes.length, 2, "a full track must not hide MIDI input");
+  assert.equal(h.calls.filter(c => c[1] === "remove_notes_extended").length, 0);
+});
+
+test("replacement replay and later selection changes never clear or fill a second time", () => {
+  const h = harness(); h.input(); h.create(); h.select(11, 22); h.flush();
+  assert.equal(h.responses.at(-1).ok, true);
+  h.create(); h.flush();
+  assert.equal(h.calls.filter(c => c[1] === "remove_notes_extended").length, 1);
+  assert.equal(h.calls.filter(c => c[1] === "add_new_notes").length, 1);
+  assert.equal(h.objects.get(22).has_clip[0], 0);
+});
+
+test("unreadable original notes/markers and invalid generated notes fail before replacement", () => {
+  for (const setup of [c => { c.notes = null; }, c => { c.notes[0].start_time = "bad"; }, c => { c.loop_start = undefined; }]) {
+    const h = harness(), original = h.input(); setup(original);
+    const before = structuredClone(original);
+    h.create(); h.flush();
+    assert.equal(h.responses.at(-1).ok, false);
+    assert.deepEqual(original, before);
+    assert.equal(h.calls.filter(c => /^(set|remove_notes_extended|add_new_notes)$/.test(c[1])).length, 0);
+  }
+  const h = harness(), original = h.input(), before = structuredClone(original);
+  h.create("invalid-result", h.target().target, {...fixture, notes: [{...fixture.notes[0], velocity: -1}]});
+  assert.equal(h.responses.at(-1).ok, false); assert.deepEqual(original, before);
+});
+
+test("failed or ignored removal does not add notes; partial write failures never auto-retry", () => {
+  for (const failure of ["throw", "ignore"]) {
+    const h = harness(), original = h.input(), before = structuredClone(original);
+    h.faults.remove = failure; h.create(); h.flush();
+    assert.equal(h.responses.at(-1).ok, false); assert.deepEqual(original, before);
+    assert.equal(h.calls.filter(c => c[1] === "add_new_notes").length, 0);
+  }
+  const h = harness(); h.input(); h.faults.add = true; h.create(); h.flush(); h.create();
+  assert.equal(h.responses.at(-1).ok, false); assert.match(h.responses.at(-1).error, /Undo/);
+  assert.equal(h.calls.filter(c => c[1] === "remove_notes_extended").length, 1);
+  assert.equal(h.calls.filter(c => c[1] === "add_new_notes").length, 1);
+});
+
+test("replacement verification detects leftover notes outside the new loop without retrying writes", () => {
+  const h = harness(), original = h.input(); h.create();
+  original.notes.push({ pitch: 127, start_time: 12000, duration: 1, velocity: 96 });
+  h.flush();
+  assert.equal(h.responses.at(-1).ok, false);
+  assert.match(h.responses.at(-1).error, /Expected 2 notes; Live returned 3/);
+  assert.equal(h.calls.filter(c => c[1] === "add_new_notes").length, 1);
 });
 
 test("Session input clears on an empty slot even when detail_clip still contains the old MIDI", () => {
@@ -176,16 +315,19 @@ test("Session input changes with the highlighted clip, without reusing stale det
   h.select(11, 22); h.objects.get(1).detail_clip = ["id", 30];
   assert.equal(h.target().sourceId, "31");
   assert.equal(h.target().source.notes[0].pitch, 72);
-  assert.equal(h.target().connected, false, "input stays readable even on a full track");
+  assert.equal(h.target().connected, true, "a full track supports replacement");
 });
 
-test("Arrangement input still follows detail_clip independently of the Session output slot", () => {
+test("Arrangement input follows detail_clip, but cannot replace a hidden Session destination", () => {
   const h = harness(); h.input();
   h.objects.get(3).focused_document_view = ["Arranger"];
   h.select(11, 22);
   h.objects.get(1).detail_clip = ["id", 30];
   const target = h.target();
-  assert.equal(target.destination, "Two · empty slot 1");
+  assert.equal(target.connected, false);
+  assert.match(target.error, /Session View/);
+  h.create("arrangement", "old-session-target");
+  assert.match(h.responses.at(-1).error, /Session View/);
   assert.equal(target.sourceId, "30");
   assert.deepEqual(target.source.notes, fixture.notes);
   h.select(12, 0); h.objects.get(1).detail_clip = ["id", 30];
@@ -227,7 +369,7 @@ test("original Max input technique and persistent request have matching MIDI sem
   clip.length = [2048]; h.objects.get(21).has_clip = [1];
   const before = structuredClone(clip);
   const context = h.target(true);
-  assert.equal(context.connected, false);
+  assert.equal(context.connected, true);
   assert.equal(context.source.notes.length, notes.length);
   const promptText = "Rework this MIDI";
   const original = buildRequest({ promptText, title: fixture.title, duration: 2048, notes });

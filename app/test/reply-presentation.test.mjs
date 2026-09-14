@@ -31,10 +31,10 @@ test("creation feedback dims unavailable destinations without blocking empty MID
 	);
 });
 
-test("creation feedback preserves connector and full-track errors", () => {
+test("creation feedback preserves connector and recording errors", () => {
 	for (const error of [
 		"The Live connector is not responding.",
-		"Add an empty scene on this track. Existing clips will not be overwritten.",
+		"Stop recording into the selected clip before replacing it.",
 	])
 		assert.equal(clipCreationUnavailable({ connected: false, error }), error);
 });

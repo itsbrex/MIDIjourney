@@ -65,7 +65,7 @@ export function ReplyFooter({
 							className="mj-create-clip shrink-0"
 							aria-label={`Create clip from reply ${replyNumber}`}
 							aria-describedby={unavailableReason ? reasonId : undefined}
-							title="Select a MIDI clip or empty slot in Live. Creates a new clip; existing clips stay untouched."
+							title="Creates MIDI in the selected Session slot. An existing clip's notes, title and length will be replaced."
 							disabled={disabled || Boolean(unavailableReason)}
 						>
 							{sending ? "Creating…" : "Create clip"}

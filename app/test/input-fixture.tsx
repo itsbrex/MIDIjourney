@@ -37,7 +37,7 @@ host.max = {
 			return;
 		}
 		if (action !== "context") return original.outlet(action, id, raw);
-		const source = ["live", "full", "other"].includes(mode)
+		const source = ["live", "full", "other", "recording"].includes(mode)
 			? {
 					title:
 						mode === "other"
@@ -59,9 +59,9 @@ host.max = {
 				JSON.stringify({
 					ok: true,
 					context: {
-						connected: mode !== "full" && mode !== "unselected",
+						connected: mode !== "recording" && mode !== "unselected",
 						target: "track-1",
-						destination: "MIDI 1 · empty slot 2",
+						destination: source ? "MIDI 1 · clip 1" : "MIDI 1 · empty slot 2",
 						source,
 						sourceId: source ? (mode === "other" ? "31" : "30") : "",
 						...(mode === "unselected"
@@ -70,10 +70,10 @@ host.max = {
 						...(mode === "error"
 							? { sourceError: "The Live connector is not responding." }
 							: {}),
-						...(mode === "full"
+						...(mode === "recording"
 							? {
 									error:
-										"Add an empty scene on this track. Existing clips will not be overwritten.",
+										"Stop recording into the selected clip before replacing it.",
 								}
 							: {}),
 					},
@@ -110,17 +110,19 @@ createRoot(controls).render(
 		aria-label="Input test controls"
 		style={{ fontSize: 11, minHeight: 48 }}
 	>
-		{["live", "other", "none", "unselected", "full", "error"].map((value) => (
-			<button
-				key={value}
-				type="button"
-				onClick={() => {
-					mode = value;
-				}}
-			>
-				Input: {value}
-			</button>
-		))}
+		{["live", "other", "none", "unselected", "full", "recording", "error"].map(
+			(value) => (
+				<button
+					key={value}
+					type="button"
+					onClick={() => {
+						mode = value;
+					}}
+				>
+					Input: {value}
+				</button>
+			),
+		)}
 		<button
 			type="button"
 			onClick={() => {

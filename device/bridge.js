@@ -110,6 +110,9 @@ function selectedSource(view, fresh) {
   return { sourceId: sourceCache ? String(sourceId) : "", source: sourceCache };
 }
 function destination(view) {
+  // Never replace a hidden Session clip while an Arrangement clip is selected.
+  if (String(scalar(api("live_app view"), "focused_document_view")) !== "Session")
+    throw new Error("Select a MIDI clip or empty slot in Session View.");
   var trackId = child(view, "selected_track");
   if (!trackId) throw new Error("Select a MIDI track and clip slot in Live.");
   var track = byId(trackId);
@@ -118,18 +121,49 @@ function destination(view) {
   if (!slotId) throw new Error("Select a MIDI clip slot in Session View.");
   var slot = byId(slotId);
   if (child(slot, "canonical_parent") !== trackId) throw new Error("Select a clip slot on the highlighted MIDI track.");
-  var sourceId = Number(scalar(slot, "has_clip")) ? child(slot, "clip") : 0;
   var slots = ids(track, "clip_slots");
-  var targetId = sourceId ? 0 : slotId;
-  if (sourceId) {
-    for (var i = 0; i < slots.length; i++) {
-      if (!Number(scalar(byId(slots[i]), "has_clip"))) { targetId = slots[i]; break; }
-    }
+  if (slots.indexOf(slotId) < 0) throw new Error("The selected clip slot is no longer on this track.");
+  var occupied = Number(scalar(slot, "has_clip"));
+  var clipId = occupied ? child(slot, "clip") : 0;
+  if (occupied) {
+    if (!clipId) throw new Error("Live has not exposed the selected clip identity.");
+    assertWritableClip(byId(clipId));
   }
-  if (!targetId) throw new Error("Add an empty scene on this track. Existing clips will not be overwritten.");
-  var signature = trackId + ":" + slotId + ":" + sourceId + ":" + targetId;
-  return { connected: true, target: signature, slotId: targetId, trackId: trackId,
-    destination: objectName(track) + " · empty slot " + (slots.indexOf(targetId) + 1) };
+  var signature = trackId + ":" + slotId + ":" + clipId + ":" + slotId;
+  return { connected: true, target: signature, slotId: slotId, trackId: trackId, clipId: clipId,
+    destination: objectName(track) + (clipId ? " · clip " : " · empty slot ") + (slots.indexOf(slotId) + 1) };
+}
+function assertWritableClip(clip) {
+  if (!Number(scalar(clip, "is_midi_clip"))) throw new Error("Select a MIDI clip, not an audio clip.");
+  if (Number(scalar(clip, "is_recording")) || Number(scalar(clip, "is_overdubbing")))
+    throw new Error("Stop recording into the selected clip before replacing it.");
+}
+function allNotes(clip) {
+  var notes = dictionaryResult(clip.call("get_all_notes_extended")).notes;
+  if (!(notes instanceof Array)) throw new Error("Live did not return all MIDI notes.");
+  return notes;
+}
+function removalRange(notes, duration) {
+  // Include negative pickups and notes outside the loop / generated duration.
+  // remove_notes_extended selects notes by start time, not their end time.
+  // https://docs.cycling74.com/apiref/lom/clip/#remove_notes_extended
+  var from = 0, end = duration;
+  for (var i = 0; i < notes.length; i++) {
+    if (!finite(notes[i].start_time) || !finite(notes[i].pitch) ||
+        notes[i].pitch % 1 || notes[i].pitch < 0 || notes[i].pitch > 127)
+      throw new Error("Live returned unreadable existing notes. No notes replaced.");
+    from = Math.min(from, notes[i].start_time);
+    end = Math.max(end, notes[i].start_time + 1);
+  }
+  if (!finite(end - from) || end - from <= 0) throw new Error("Invalid existing MIDI range.");
+  return { from: from, span: end - from };
+}
+function setRegion(clip, start, end, duration) {
+  // Move start left first: either a shorter result or an old negative region
+  // can otherwise make Live reject an end-before-start marker change.
+  clip.set(start, Math.min(0, Number(scalar(clip, start))));
+  clip.set(end, duration);
+  clip.set(start, 0);
 }
 function selected(fresh) {
   if (!enabled) throw new Error("The connector is starting. Keep this device loaded in Live.");
@@ -186,24 +220,31 @@ function create(id, raw) {
     if (!enabled) throw new Error("The connector is starting. Keep this device loaded in Live.");
     target = destination(api("live_set view"));
     if (request.target !== target.target) throw new Error("The selection changed. Check the destination and click Create clip again.");
-    // Revalidate the exact destination before the first mutation.
-    if (Number(scalar(byId(target.slotId), "has_clip"))) throw new Error("The destination is occupied. No clip was overwritten.");
+    // Revalidate both occupancy and identity before the first mutation.
+    var slot = byId(target.slotId);
+    if (Number(scalar(slot, "has_clip")) !== (target.clipId ? 1 : 0) ||
+        child(slot, "clip") !== target.clipId) throw new Error("The destination changed. No changes made.");
   } catch (failure) { respond(id, { ok: false, error: failure.message }); return; }
   writing = true;
   // Mark in-flight so a replay can never create twice, even after a timeout.
   completed[id] = { ok: false, error: "This request is already being processed. Check Live before retrying." };
-  var createdId = 0, writeDictionary = null;
+  var createdId = target.clipId, writeDictionary = null;
   function finish(value) {
     if (writeDictionary) { writeDictionary.freepeer(); writeDictionary = null; }
     if (!value.ok) post("MIDI Journey: " + value.error + "\n");
     writing = false; cacheKey = ""; remember(id, value);
   }
   try {
-    byId(target.slotId).call("create_clip", clip.duration);
-    createdId = child(byId(target.slotId), "clip");
+    // Prepare the payload before creating a clip or clearing any existing notes.
+    writeDictionary = new Dict();
+    writeDictionary.parse(JSON.stringify({ notes: clip.notes }));
+    if (!createdId) {
+      byId(target.slotId).call("create_clip", clip.duration);
+      createdId = child(byId(target.slotId), "clip");
+    }
     if (!createdId) throw new Error("Live has not exposed the created clip identity.");
   } catch (_) { finish({ ok: false, error: "Live could not create the clip. Check the destination before retrying." }); return; }
-  // Create and fill on one deferred invocation; never guess a later clip's ID.
+  // Create/replace and fill on one invocation; never guess a later clip's ID.
   // Max's Live Object Model has no begin/end_undo_step functions.
   function fill() {
     try {
@@ -211,28 +252,40 @@ function create(id, raw) {
       if (child(slot, "canonical_parent") !== target.trackId) throw new Error("Destination moved.");
       if (child(slot, "clip") !== createdId) throw new Error("Destination changed.");
       var created = byId(createdId);
-      var existing = dictionaryResult(created.call("get_notes_extended", 0, 128, 0, clip.duration));
-      if ((existing.notes || []).length) throw new Error("The new clip is no longer empty.");
-      created.set("name", clip.title);
-      writeDictionary = new Dict();
-      writeDictionary.parse(JSON.stringify({ notes: clip.notes }));
+      assertWritableClip(created);
+      var existing = allNotes(created);
+      if (!target.clipId && existing.length) throw new Error("The new clip is no longer empty.");
+      var range = removalRange(existing, clip.duration);
+      var markers = ["loop_start", "loop_end", "start_marker", "end_marker"];
+      for (var marker = 0; marker < markers.length; marker++)
+        if (!finite(Number(scalar(created, markers[marker])))) throw new Error("Live returned unreadable clip markers.");
+      if (existing.length) {
+        created.call("remove_notes_extended", 0, 128, range.from, range.span);
+        if (allNotes(created).length) throw new Error("Live did not clear the existing notes.");
+      }
       // JS LiveAPI accepts the Dict object, unlike live.object's message syntax.
       // Retain its native peer until read-back has completed.
       created.call("add_new_notes", writeDictionary);
+      setRegion(created, "loop_start", "loop_end", clip.duration);
+      setRegion(created, "start_marker", "end_marker", clip.duration);
+      created.set("name", clip.title);
       later(verify, 100);
-    } catch (_) { finish({ ok: false, error: "Live could not fill the new clip. Inspect it and use Undo if needed; no write was retried." }); }
+    } catch (failure) { finish({ ok: false, error: "Live could not write the clip. " + failure.message + " Inspect it and use Undo if needed; no write was retried." }); }
   }
   var checks = 0;
   function verify() {
     try {
-      if (child(byId(target.slotId), "clip") !== createdId) throw new Error("Destination clip changed.");
+      if (child(byId(target.slotId), "canonical_parent") !== target.trackId ||
+          child(byId(target.slotId), "clip") !== createdId) throw new Error("Destination clip changed.");
       var created = byId(createdId);
-      var rawNotes = dictionaryResult(created.call("get_notes_extended", 0, 128, 0, clip.duration));
       function compare(a, b) { return a.start_time - b.start_time || a.pitch - b.pitch || a.duration - b.duration; }
-      var actual = rawNotes.notes.slice().sort(compare), expected = clip.notes.slice().sort(compare);
+      var actual = allNotes(created).slice().sort(compare), expected = clip.notes.slice().sort(compare);
       var problem = actual.length !== expected.length ? "Expected " + expected.length + " notes; Live returned " + actual.length + "." :
         objectName(created) !== clip.title ? "The clip title did not match." :
-        Math.abs(Number(scalar(created, "length")) - clip.duration) > 0.0001 ? "The clip length did not match." : "";
+        Math.abs(Number(scalar(created, "length")) - clip.duration) > 0.0001 ? "The clip length did not match." :
+        Number(scalar(created, "start_marker")) !== 0 || Number(scalar(created, "loop_start")) !== 0 ||
+        Math.abs(Number(scalar(created, "end_marker")) - clip.duration) > 0.0001 ||
+        Math.abs(Number(scalar(created, "loop_end")) - clip.duration) > 0.0001 ? "The clip markers did not match." : "";
       var matches = !problem;
       for (var i = 0; matches && i < actual.length; i++) {
         var fields = ["pitch", "velocity", "start_time", "duration"], tolerances = [0.001, 0.01, 0.0001, 0.0001];
