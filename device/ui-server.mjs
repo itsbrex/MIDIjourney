@@ -4,7 +4,7 @@ import { extname, resolve, sep } from "node:path";
 import { URL } from "node:url";
 import { createBrowserAuth } from "./browser-auth.mjs";
 
-const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".png": "image/png", ".webmanifest": "application/manifest+json" };
+const MIME = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".png": "image/png", ".webp": "image/webp", ".webmanifest": "application/manifest+json" };
 
 export async function startUiServer({ directory, assets, getContext, port = 5178, openBrowser = undefined, now = Date.now }) {
   const root = resolve(directory || ".");

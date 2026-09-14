@@ -39,7 +39,7 @@ test("creation feedback preserves connector and recording errors", () => {
 		assert.equal(clipCreationUnavailable({ connected: false, error }), error);
 });
 
-test("model attribution moves to the footer without changing stored response text", () => {
+test("legacy model attribution is hidden without changing stored response text", () => {
 	const turn = {
 		result: { explanation: "A gentle melody.\n\nModel: served-model" },
 		calls: [{ status: "Received", model: "served-model" }],
@@ -47,12 +47,11 @@ test("model attribution moves to the footer without changing stored response tex
 	const before = JSON.stringify(turn);
 	assert.deepEqual(replyPresentation(turn), {
 		explanation: "A gentle melody.",
-		model: "served-model",
 	});
 	assert.equal(JSON.stringify(turn), before);
 });
 
-test("final received metadata wins over requested aliases, prose and earlier attempts", () => {
+test("requested models, actual models and earlier attempts never become visible labels", () => {
 	const turn = {
 		result: { explanation: "A phrase.\n\nModel: old-label" },
 		calls: [
@@ -64,12 +63,12 @@ test("final received metadata wins over requested aliases, prose and earlier att
 			},
 		],
 	};
-	assert.equal(replyPresentation(turn).model, "actual-final-model");
+	assert.deepEqual(replyPresentation(turn), { explanation: "A phrase." });
 	turn.calls[1].model = null;
-	assert.equal(replyPresentation(turn).model, "not reported");
+	assert.deepEqual(replyPresentation(turn), { explanation: "A phrase." });
 });
 
-test("legacy appended attribution remains available and musical prose is preserved", () => {
+test("legacy appended attribution is removed while musical prose is preserved", () => {
 	assert.deepEqual(
 		replyPresentation({
 			result: {
@@ -80,7 +79,6 @@ test("legacy appended attribution remains available and musical prose is preserv
 		}),
 		{
 			explanation: "Model: a repeating motif.\n\nMore music.",
-			model: "legacy-model",
 		},
 	);
 	assert.deepEqual(
@@ -90,11 +88,29 @@ test("legacy appended attribution remains available and musical prose is preserv
 		}),
 		{
 			explanation: "Model: part of the prose.",
-			model: "not reported",
 		},
 	);
 	assert.deepEqual(replyPresentation({ calls: [] }), {
 		explanation: "",
-		model: "not reported",
 	});
+});
+
+test("old replies containing only model attribution render an empty explanation", () => {
+	for (const model of [
+		"served-model",
+		"9a0db868-29cb-4e78-9d44-ba2be6551337",
+		"not reported",
+	]) {
+		const turn = {
+			result: { explanation: `Model: ${model}` },
+			calls: [{ status: "Received", model }],
+		};
+		const before = JSON.stringify(turn);
+		assert.deepEqual(replyPresentation(turn), { explanation: "" });
+		assert.equal(JSON.stringify(turn), before);
+	}
+	assert.deepEqual(
+		replyPresentation({ result: { explanation: "Model: not reported" } }),
+		{ explanation: "" },
+	);
 });

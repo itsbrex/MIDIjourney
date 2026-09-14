@@ -1,6 +1,6 @@
 import { Pollinations } from "@pollinations/sdk";
 import { useAuthActions, useAuthState } from "@pollinations/sdk/react";
-import { Alert, ColorModeToggle, Heading } from "@pollinations/ui";
+import { Alert } from "@pollinations/ui";
 import {
 	useEffect,
 	useMemo,
@@ -92,31 +92,19 @@ export function App() {
 			data-theme="blue"
 			className="flex h-dvh flex-col bg-app-bg text-sm text-theme-text-base"
 		>
-			<header className="z-30 shrink-0 bg-app-bg">
-				<div className="mj-app-width mx-auto flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-					<Heading
-						as="h1"
-						size="section"
-						className="polli:shrink-0 polli:font-medium"
-					>
-						MIDI Journey
-					</Heading>
-					<div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
-						<ColorModeToggle />
-						<LiveAccount
-							revision={
-								chat.turns.filter((turn) => turn.status === "complete").length
-							}
-						/>
-					</div>
-				</div>
-			</header>
-			{authError ? (
-				<div className="mj-app-width mx-auto mb-2 px-4">
-					<Alert intent="danger">{redactSecrets(authError.message)}</Alert>
-				</div>
-			) : null}
 			<Workspace
+				account={
+					<LiveAccount
+						revision={
+							chat.turns.filter((turn) => turn.status === "complete").length
+						}
+					/>
+				}
+				notice={
+					authError ? (
+						<Alert intent="danger">{redactSecrets(authError.message)}</Alert>
+					) : null
+				}
 				chat={chat}
 				live={live}
 				loggedIn={isLoggedIn}

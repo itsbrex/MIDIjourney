@@ -1,4 +1,4 @@
-import { memo, useId } from "react";
+import { memo } from "react";
 import {
 	KEY_WIDTH,
 	pianoRoll,
@@ -12,20 +12,17 @@ export const PianoRoll = memo(function PianoRoll({
 }: {
 	clip: MidiResult;
 }) {
-	const id = useId();
 	const roll = pianoRoll(clip.notes, clip.duration);
 	if (!roll) return null;
 	return (
 		<svg
 			className="mj-piano-roll"
+			style={{ height: roll.displayHeight }}
 			viewBox={`0 0 ${ROLL_WIDTH} ${ROLL_HEIGHT}`}
 			preserveAspectRatio="none"
 			role="img"
-			aria-labelledby={id}
+			aria-label={`MIDI preview: ${clip.title}. ${roll.notes.length} notes, MIDI pitches ${roll.low}–${roll.high}. Time runs left to right; higher pitches are above.`}
 		>
-			<title
-				id={id}
-			>{`MIDI preview: ${clip.title}. ${roll.notes.length} notes, MIDI pitches ${roll.low}–${roll.high}. Time runs left to right; higher pitches are above.`}</title>
 			<g>
 				{roll.rows.map((row) => (
 					<g key={row.pitch}>
@@ -62,12 +59,11 @@ export const PianoRoll = memo(function PianoRoll({
 						y={note.y}
 						width={note.width}
 						height={note.height}
-						rx={0.8}
+						rx={1.5}
+						ry={note.height * 0.25}
 						opacity={note.opacity}
 						className="mj-roll-note"
-					>
-						<title>{`MIDI pitch ${note.pitch} · velocity ${note.velocity}`}</title>
-					</rect>
+					/>
 				))}
 			</g>
 		</svg>

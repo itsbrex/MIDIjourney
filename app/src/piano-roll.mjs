@@ -39,6 +39,9 @@ export function pianoRoll(notes, duration) {
 	return {
 		low,
 		high,
+		// Keep ordinary phrases legible without making wide-register clips take
+		// over the chat. This changes only the preview, never MIDI coordinates.
+		displayHeight: Math.min(144, Math.max(112, rows * 5)),
 		rows: Array.from({ length: rows }, (_, index) => {
 			const pitch = high - index;
 			return {
@@ -57,13 +60,13 @@ export function pianoRoll(notes, duration) {
 			pitch: note.pitch,
 			velocity: note.velocity,
 			x: KEY_WIDTH + note.start_time * scale,
-			y: (high - note.pitch) * rowHeight + rowHeight * 0.12,
+			y: (high - note.pitch) * rowHeight + rowHeight * 0.08,
 			width: Math.min(
 				ROLL_WIDTH - KEY_WIDTH - note.start_time * scale,
-				Math.max(0.8, note.duration * scale),
+				Math.max(2, note.duration * scale),
 			),
-			height: rowHeight * 0.76,
-			opacity: 0.4 + (Math.max(0, Math.min(127, note.velocity)) / 127) * 0.6,
+			height: rowHeight * 0.84,
+			opacity: 0.72 + (Math.max(0, Math.min(127, note.velocity)) / 127) * 0.28,
 		})),
 	};
 }

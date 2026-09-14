@@ -3,20 +3,11 @@ import type { MidiAttachment, MidiInputSummary } from "./types";
 
 function MidiBadge({ summary }: { summary: MidiInputSummary }) {
 	return (
-		<Surface
-			variant="card"
-			className="mj-midi-badge"
-			title={summary.title || "Untitled MIDI clip"}
-		>
+		<Surface variant="card" className="mj-midi-badge">
 			<AudioIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-			<div className="min-w-0 flex-1">
-				<Text size="xs" weight="medium" className="truncate">
-					{summary.title || "Untitled MIDI clip"}
-				</Text>
-				<Text size="xs" tone="muted">
-					{summary.noteCount} {summary.noteCount === 1 ? "note" : "notes"}
-				</Text>
-			</div>
+			<Text as="span" size="xs" weight="medium" className="min-w-0 truncate">
+				{summary.title || "Untitled MIDI clip"}
+			</Text>
 		</Surface>
 	);
 }
@@ -54,7 +45,7 @@ export function MessageMidiInput({ inputs }: { inputs: MidiInputSummary[] }) {
 			{inputs
 				.filter((input) => input.kind !== "none")
 				.map((input, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: A sent message's input snapshot is immutable; duplicate clip titles are valid.
+					// Sent input snapshots are immutable; duplicate clip titles are valid.
 					<li key={`${index}:${input.title}`} className="min-w-0 max-w-full">
 						<MidiBadge summary={input} />
 					</li>

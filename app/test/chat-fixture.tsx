@@ -123,6 +123,8 @@ window.fetch = async (input, options) => {
 		requiredElement("test-context").textContent =
 			`Request messages: ${request.messages?.length || 0}`;
 		const n = ++generation;
+		const chords =
+			new URLSearchParams(location.search).get("preview") === "chords";
 		if ((document.getElementById("test-delay") as HTMLInputElement).checked)
 			await new Promise((resolve) => setTimeout(resolve, 3500));
 		if ((document.getElementById("test-fail") as HTMLInputElement).checked)
@@ -140,16 +142,24 @@ window.fetch = async (input, options) => {
 					finish_reason: "stop",
 					message: {
 						content: JSON.stringify({
-							title: `Melody ${n}`,
+							title: chords ? "Soft chord changes" : `Melody ${n}`,
 							explanation: "A gentle phrase with a little room to breathe.",
 							key: "C major",
 							duration: 8,
-							notes: Array.from({ length: 16 }, (_, i) => ({
-								pitch: [48, 60, 64, 67, 52, 62, 65, 69][i % 8] + ((n - 1) % 3),
-								start_time: Math.floor(i / 2),
-								duration: i % 2 ? 0.75 : 1.5,
-								velocity: 65 + i * 3,
-							})),
+							notes: chords
+								? Array.from({ length: 12 }, (_, i) => ({
+										pitch: [43, 55, 60, 64, 67, 70][i % 6] + (i >= 6 ? 2 : 0),
+										start_time: i < 6 ? 0 : 4,
+										duration: 3.75,
+										velocity: 48 + (i % 6) * 12,
+									}))
+								: Array.from({ length: 16 }, (_, i) => ({
+										pitch:
+											[48, 60, 64, 67, 52, 62, 65, 69][i % 8] + ((n - 1) % 3),
+										start_time: Math.floor(i / 2),
+										duration: i % 2 ? 0.75 : 1.5,
+										velocity: 65 + i * 3,
+									})),
 						}),
 					},
 				},

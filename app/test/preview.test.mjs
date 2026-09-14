@@ -47,6 +47,7 @@ test("piano roll handles single-pitch, full MIDI range and dense output with bou
 		assert.equal(roll.notes.length, notes.length);
 		assert.ok(roll.grid.length <= 16);
 		assert.ok(roll.low >= 0 && roll.high <= 127);
+		assert.ok(roll.displayHeight >= 112 && roll.displayHeight <= 144);
 		for (const item of roll.notes) {
 			assert.ok(item.width > 0 && item.height > 0);
 			assert.ok(item.x >= KEY_WIDTH && item.x + item.width <= ROLL_WIDTH);
@@ -56,6 +57,28 @@ test("piano roll handles single-pitch, full MIDI range and dense output with bou
 	assert.equal(pianoRoll([], 8), null);
 	assert.equal(pianoRoll([{ ...note, pitch: -1 }], 8), null);
 	assert.equal(pianoRoll([{ ...note, duration: Infinity }], 8), null);
+});
+
+test("piano roll gives ordinary phrases substantial notes without faint velocities or oversized previews", () => {
+	const roll = pianoRoll(
+		[
+			{ ...note, pitch: 48, velocity: 1 },
+			{ ...note, pitch: 72, velocity: 127 },
+		],
+		8,
+	);
+	for (const item of roll.notes) {
+		assert.ok((item.height * roll.displayHeight) / ROLL_HEIGHT >= 4);
+		assert.ok(item.opacity >= 0.72 && item.opacity <= 1);
+	}
+	assert.ok(roll.notes[1].opacity > roll.notes[0].opacity);
+	const short = pianoRoll([{ ...note, duration: 0.001 }], 8);
+	assert.equal(short.notes[0].width, 2);
+	const nearEnd = pianoRoll(
+		[{ ...note, start_time: 7.999, duration: 0.001 }],
+		8,
+	);
+	assert.ok(nearEnd.notes[0].x + nearEnd.notes[0].width <= ROLL_WIDTH);
 });
 
 test("copy retains the exact model message and all notes, with model/usage but no request or auth fields", async () => {

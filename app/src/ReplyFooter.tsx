@@ -1,7 +1,4 @@
-import { Alert, Button, Text } from "@pollinations/ui";
-import { useId } from "react";
-import { CopyDetails } from "./CopyDetails";
-import { replyPresentation } from "./reply-presentation.mjs";
+import { Alert, Button, Tooltip } from "@pollinations/ui";
 import type { ChatTurn } from "./types";
 
 export function ReplyFooter({
@@ -19,58 +16,43 @@ export function ReplyFooter({
 	unavailableReason?: string;
 	onSend: () => void;
 }) {
-	const reasonId = useId();
-	if (turn.status === "pending") return null;
+	if (turn.status === "pending" || (!turn.result && !turn.writeError))
+		return null;
+	const disabledReason = sending
+		? "The clip is being created."
+		: unavailableReason ||
+			(disabled ? "Wait for the current operation to finish." : "");
+	const createButton = (
+		<Button
+			size="md"
+			type="button"
+			onClick={onSend}
+			className="mj-create-clip shrink-0"
+			aria-label={`Create clip from reply ${replyNumber}`}
+			disabled={Boolean(disabledReason)}
+		>
+			{sending ? "Creating…" : "Create clip"}
+		</Button>
+	);
 	return (
 		<footer className="space-y-2">
 			{turn.writeError ? (
 				<Alert intent="danger">{turn.writeError}</Alert>
 			) : null}
-			<div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-				{turn.calls.length || turn.result ? (
-					<div className="mj-reply-meta flex min-w-0 max-w-full flex-wrap items-center gap-x-3 gap-y-1">
-						{turn.result ? (
-							<Text
-								size="xs"
-								tone="muted"
-								className="min-w-0 break-all"
-								aria-label="Model used"
-							>
-								Model: {replyPresentation(turn).model}
-							</Text>
-						) : null}
-						<CopyDetails
-							calls={turn.calls}
-							result={turn.result}
-							basedOn={turn.basedOn}
-						/>
-					</div>
-				) : null}
+			<div className="flex min-w-0 justify-end">
 				{turn.result ? (
-					<div className="ml-auto flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
-						{unavailableReason ? (
-							<Text
-								id={reasonId}
-								size="xs"
-								tone="muted"
-								className="max-w-48 break-words"
-							>
-								{unavailableReason}
-							</Text>
-						) : null}
-						<Button
-							size="md"
-							type="button"
-							onClick={onSend}
-							className="mj-create-clip shrink-0"
-							aria-label={`Create clip from reply ${replyNumber}`}
-							aria-describedby={unavailableReason ? reasonId : undefined}
-							title="Creates MIDI in the selected Session slot. An existing clip's notes, title and length will be replaced."
-							disabled={disabled || Boolean(unavailableReason)}
+					disabledReason ? (
+						<Tooltip
+							triggerAs="span"
+							tapEnabled
+							ariaLabel="Why Create clip is unavailable"
+							content={disabledReason}
 						>
-							{sending ? "Creating…" : "Create clip"}
-						</Button>
-					</div>
+							{createButton}
+						</Tooltip>
+					) : (
+						createButton
+					)
 				) : null}
 			</div>
 		</footer>

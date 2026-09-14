@@ -7,20 +7,27 @@ export function clipCreationUnavailable(live) {
 	return live.error;
 }
 
-// The shared MIDI client appends this final attribution paragraph itself.
+// Hide attribution appended by older builds without rewriting saved responses.
 export function replyPresentation(turn) {
 	const explanation = turn.result?.explanation || "";
 	const attribution = explanation.match(/\n\nModel: ([^\r\n]+)$/);
 	const lastResponse = (turn.calls || []).findLast(
 		(call) => call.status === "Received",
 	);
+	const previousModel =
+		typeof lastResponse?.model === "string"
+			? lastResponse.model.replace(/\s+/g, " ").trim()
+			: "";
+	const attributionOnly =
+		explanation === `Model: ${previousModel}` ||
+		/^Model: (?:not reported|[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12})$/i.test(
+			explanation,
+		);
 	return {
-		explanation: attribution
-			? explanation.slice(0, attribution.index)
-			: explanation,
-		// A missing model on the final response must not inherit an earlier attempt's model.
-		model: lastResponse
-			? lastResponse.model || "not reported"
-			: attribution?.[1] || "not reported",
+		explanation: attributionOnly
+			? ""
+			: attribution
+				? explanation.slice(0, attribution.index)
+				: explanation,
 	};
 }
