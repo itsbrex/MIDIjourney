@@ -9,7 +9,7 @@ macOS; one device on Main; persistent Pollinations web UI; single-selected-clip 
 ## Automated and packaging checks
 
 - [x] Clean-checkout `npm ci && npm run verify` succeeds without sibling repos or SDK downloads.
-- [ ] CI passes on the production source commit.
+- [x] CI passes on the production source commit (`1844e4d`; [Verify V3](https://github.com/pollinations/MIDIjourney/actions/runs/34830676218)).
 - [x] Vendored UI checksum, licenses and source provenance reviewed.
 - [x] Staged repository excludes personal sessions, credentials, the local plan and downloaded SDK. Device staging excludes test UI; tests remain in the source repository.
 - [x] `npm run release:prepare` creates an isolated project using the unchanged authorized app key.
