@@ -100,20 +100,8 @@ function displayUserContent(request) {
   return `# Prompt\n${request.instruction}\n\n# Response`;
 }
 
-function explanationWithModel(explanation, model) {
-  const body = safeText(explanation, 1000).trim();
-  const name = typeof model === "string"
-    ? safeText(model.replace(/\s+/g, " ").trim(), 100)
-    : "";
-  return [body, `Model: ${name || "not reported"}`].filter(Boolean).join("\n\n");
-}
-
-function displayAssistantContent(clip, model) {
-  // Add attribution after bounding the musical explanation so long responses
-  // cannot truncate it. Existing history callers without metadata stay unchanged.
-  const explanation = (model === undefined
-    ? safeText(clip.explanation, 1000)
-    : explanationWithModel(clip.explanation, model)).replace(/\n/g, " ");
+function displayAssistantContent(clip) {
+  const explanation = safeText(clip.explanation, 1000).replace(/\n/g, " ");
   const key = clip.key || "unknown";
   const notation = clip.notes
     .map(
@@ -190,7 +178,7 @@ function serializeContext(value) {
   return best;
 }
 
-function appendHistory(history, request, clip, model) {
+function appendHistory(history, request, clip) {
   const normalized = normalizeHistory(history);
   const userContext = serializeContext(request);
   const assistantContext = serializeContext(clip);
@@ -203,7 +191,7 @@ function appendHistory(history, request, clip, model) {
     },
     {
       role: "assistant",
-      content: displayAssistantContent(clip, model),
+      content: displayAssistantContent(clip),
       contextContent: assistantContext,
     },
   ].slice(-CONFIG.maxHistoryMessages);
@@ -212,7 +200,6 @@ function appendHistory(history, request, clip, model) {
 exports.appendHistory = appendHistory;
 exports.buildContext = buildContext;
 exports.buildRequest = buildRequest;
-exports.explanationWithModel = explanationWithModel;
 exports.normalizeHistory = normalizeHistory;
 exports.redactSecrets = redactSecrets;
 exports.MAX_SOURCE_CLIPS = MAX_SOURCE_CLIPS;

@@ -1,4 +1,11 @@
 const { CONFIG } = require("../config.js");
+const { parseDocument, isMap, isScalar } = require("yaml");
+
+const MAX_RESPONSE_CHARACTERS = 512_000;
+const AGENT_METADATA_FIELDS = new Set([
+  "title", "explanation", "key", "duration", "notation",
+]);
+const CSV_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 
 const MIDI_CLIP_RESPONSE_SCHEMA = Object.freeze({
   type: "object",
@@ -166,19 +173,106 @@ function sanitizeInputNotes(notes) {
 
 function stripCodeFence(content) {
   const trimmed = content.trim();
-  const match = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const match = trimmed.match(/^```(?:json|yaml|yml)?\s*([\s\S]*?)\s*```$/i);
   return match ? match[1].trim() : trimmed;
+}
+
+function parseAgentNotation(notation) {
+  if (typeof notation !== "string") {
+    throw new MidiValidationError("The agent response is missing its CSV notation.");
+  }
+  const lines = notation.trim().split(/\r?\n/);
+  const header = lines.shift().split(",").map((cell) => cell.trim());
+  if (header.join(",") !== "pitch,time,duration,velocity") {
+    throw new MidiValidationError("The agent response has an unsupported MIDI notation header.");
+  }
+  if (lines.length === 0 || lines.length > CONFIG.maxOutputNotes) {
+    throw new MidiValidationError(`The agent notation must contain 1 to ${CONFIG.maxOutputNotes} notes.`);
+  }
+  return lines.map((line, index) => {
+    const cells = line.split(",").map((cell) => cell.trim());
+    if (
+      cells.length !== 4 ||
+      cells.some((cell) => !CSV_NUMBER.test(cell) || !Number.isFinite(Number(cell)))
+    ) {
+      throw new MidiValidationError("The agent returned an unreadable MIDI note.", [
+        `notation row ${index + 1} must contain four numeric values`,
+      ]);
+    }
+    const [pitch, start_time, duration, velocity] = cells.map(Number);
+    return { pitch, start_time, duration, velocity };
+  });
+}
+
+function parseAgentYaml(content) {
+  const doc = parseDocument(content, {
+    version: "1.2",
+    schema: "core",
+    strict: true,
+    uniqueKeys: true,
+    stringKeys: true,
+    prettyErrors: false,
+    merge: false,
+    resolveKnownTags: false,
+  });
+  const root = doc.contents;
+  if (
+    doc.errors.length || doc.warnings.length || !isMap(root) ||
+    root.tag || root.anchor || root.items.length > AGENT_METADATA_FIELDS.size
+  ) {
+    throw new MidiValidationError("The agent returned unsupported MIDI YAML.");
+  }
+
+  // Read only known scalar fields. Never resolve aliases, tags, or arbitrary
+  // nested YAML into application objects.
+  const metadata = {};
+  for (const { key, value } of root.items) {
+    if (
+      !isScalar(key) || !AGENT_METADATA_FIELDS.has(key.value) || key.tag || key.anchor ||
+      !isScalar(value) || value.tag || value.anchor || Object.hasOwn(metadata, key.value)
+    ) {
+      throw new MidiValidationError("The agent returned unsupported MIDI metadata.");
+    }
+    metadata[key.value] = value.value;
+  }
+  if (
+    typeof metadata.title !== "string" ||
+    (metadata.explanation != null && typeof metadata.explanation !== "string") ||
+    (metadata.key != null && typeof metadata.key !== "string") ||
+    (Object.hasOwn(metadata, "duration") && !isFiniteNumber(metadata.duration))
+  ) {
+    throw new MidiValidationError("The agent returned invalid MIDI metadata.");
+  }
+  const notes = parseAgentNotation(metadata.notation);
+  return {
+    title: metadata.title,
+    explanation: metadata.explanation ?? "",
+    key: metadata.key ?? null,
+    duration: metadata.duration ?? notes.reduce(
+      (end, note) => Math.max(end, note.start_time + note.duration), 0,
+    ),
+    notes,
+  };
 }
 
 function parseMidiClipResponse(content) {
   if (typeof content !== "string" || content.trim() === "") {
     throw new MidiValidationError("Pollinations returned an empty MIDI response.");
   }
+  if (content.length > MAX_RESPONSE_CHARACTERS) {
+    throw new MidiValidationError("The generated MIDI response is too large.");
+  }
 
   let payload;
   try {
-    payload = JSON.parse(stripCodeFence(content));
-  } catch {
+    const text = stripCodeFence(content);
+    // Keep old JSON replies working, but never reinterpret malformed JSON as
+    // YAML (which could otherwise accept number words as strings).
+    payload = text.startsWith("{") || text.startsWith("[")
+      ? JSON.parse(text)
+      : parseAgentYaml(text);
+  } catch (error) {
+    if (error instanceof MidiValidationError) throw error;
     throw new MidiValidationError("Pollinations returned MIDI in an unreadable format.");
   }
   return normalizeMidiClip(payload);

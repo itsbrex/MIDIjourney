@@ -2,11 +2,10 @@ const SYSTEM_PROMPT = require("./systemPrompt");
 const { PollinationsError } = require("@pollinations/sdk");
 const { CONFIG } = require("./config.js");
 const {
-  MIDI_CLIP_RESPONSE_SCHEMA,
   MidiValidationError,
   parseMidiClipResponse,
 } = require("./encoding/midiClip.js");
-const { appendHistory, buildContext, buildRequest, explanationWithModel } = require("./history.js");
+const { appendHistory, buildContext, buildRequest } = require("./history.js");
 const { stripSensitiveFields } = require("./sanitize.js");
 
 function generationAbortError() {
@@ -106,7 +105,7 @@ function classifyGenerationError(error) {
     if (error.status === 400 || error.status === 404) {
       return {
         code: "INVALID_PROVIDER_REQUEST",
-        message: "The selected Pollinations model could not accept this MIDI request.",
+        message: `Pollinations rejected the MIDI Journey agent request (HTTP ${error.status}).`,
       };
     }
     if (error.status === 403) {
@@ -157,9 +156,9 @@ class PollinationsMidiClient {
       const safeInput = stripSensitiveFields(input);
       const request = buildRequest(safeInput);
       const messages = [
-        // Managed agents may not forward response_format to their base model.
-        // Carry the exact same output contract in messages; still validate locally.
-        { role: "system", content: `${SYSTEM_PROMPT}\n\nRequired output JSON schema:\n${JSON.stringify(MIDI_CLIP_RESPONSE_SCHEMA)}` },
+        // Managed agents reject structured response formats. Supply the MIDI
+        // native YAML/CSV contract in messages, then validate all notes locally.
+        { role: "system", content: SYSTEM_PROMPT },
         ...buildContext(safeInput.history, Boolean(safeInput.historyStatus)),
         { role: "user", content: JSON.stringify(request) },
       ];
@@ -173,15 +172,6 @@ class PollinationsMidiClient {
         model,
         temperature,
         maxTokens: 12000,
-        responseFormat: {
-          type: "json_schema",
-          json_schema: {
-            name: "midi_clip",
-            description: "A complete MIDI clip for Ableton Live",
-            strict: true,
-            schema: MIDI_CLIP_RESPONSE_SCHEMA,
-          },
-        },
         signal: abortController.signal,
       });
 
@@ -191,14 +181,11 @@ class PollinationsMidiClient {
 
       const content = response?.choices?.[0]?.message?.content;
       const clip = parseMidiClipResponse(content);
-      // Use response metadata, not the requested alias or model-generated prose.
-      // Missing metadata stays explicitly unknown; it must not imply a model ran.
-      const reportedModel = response.model ?? null;
       const result = {
         ...safeInput,
-        history: appendHistory(safeInput.history, request, clip, reportedModel),
+        history: appendHistory(safeInput.history, request, clip),
         title: clip.title,
-        explanation: explanationWithModel(clip.explanation, reportedModel),
+        explanation: clip.explanation,
         key: clip.key,
         duration: clip.duration,
         notes: clip.notes,

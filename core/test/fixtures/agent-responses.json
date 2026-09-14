@@ -1,0 +1,6 @@
+{
+  "source": "Synthetic eight-note agent probes recorded on 2026-09-14; no user clip data or credentials.",
+  "native": "title: Gentle Arc\nduration: 8\nkey: C major\nnotation: |-\n  pitch,time,duration,velocity\n  60,0,1,60\n  64,1,0.75,65\n  67,1.75,0.75,70\n  69,2.5,1.25,74\n  67,3.75,0.75,67\n  65,4.5,1.25,61\n  62,5.75,0.75,55\n  60,6.5,1.5,46",
+  "nativeDespiteJsonRequest": "title: Gentle Ascent\nduration: 8\nkey: C major\nnotation: |-\n  pitch,time,duration,velocity\n  60,0,0.95,62\n  64,1,0.7,67\n  67,1.75,0.7,72\n  69,2.5,1.2,76\n  67,3.75,0.7,69\n  65,4.5,1.2,64\n  62,5.75,0.7,57\n  60,6.5,1.5,49",
+  "updatedApp": "title: Afternoon Song\nexplanation: A rising piano phrase gives way to a gently syncopated descent and a soft tonic resolution.\nkey: C major\nduration: 8\nnotation: |-\n  pitch,time,duration,velocity\n  60,0,0.72,62\n  64,0.75,0.72,67\n  67,1.5,1.18,73\n  69,2.75,1.2,77\n  67,4.25,0.7,68\n  64,5,0.68,61\n  62,5.75,0.7,56\n  60,6.5,1.5,48"
+}

@@ -25,7 +25,8 @@
 		"@pollinations/sdk": "5.1.0-alpha.7",
 		"@pollinations/ui": "file:vendor/pollinations-ui-0.1.0-alpha.1.tgz",
 		"react": "19.3.0",
-		"react-dom": "19.3.0"
+		"react-dom": "19.3.0",
+		"yaml": "2.9.0"
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "4.3.3",

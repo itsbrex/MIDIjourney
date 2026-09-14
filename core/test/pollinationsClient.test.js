@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { PollinationsError } = require("@pollinations/sdk");
+const SYSTEM_PROMPT = require("../systemPrompt.js");
 const {
   PollinationsMidiClient,
   chatWithRetries,
@@ -45,7 +46,7 @@ function createHarness(responseOverride) {
   return { auth, calls, response };
 }
 
-test("generates strict structured MIDI and removes legacy API keys", async () => {
+test("generates locally validated MIDI without managed-agent structured output and removes legacy API keys", async () => {
   const { auth, calls } = createHarness();
   const events = [];
   const generator = new PollinationsMidiClient({ auth, onEvent: (event) => events.push(event) });
@@ -64,53 +65,53 @@ test("generates strict structured MIDI and removes legacy API keys", async () =>
   assert.equal(result.history.length, 2);
   assert.equal(calls[0][0][0].role, "system");
   assert.equal(calls[0][1].model, MIDI_JOURNEY_AGENT);
-  assert.equal(calls[0][1].responseFormat.type, "json_schema");
-  assert.deepEqual(
-    JSON.parse(calls[0][0][0].content.split("Required output JSON schema:\n")[1]),
-    calls[0][1].responseFormat.json_schema.schema,
-  );
+  assert.equal(Object.hasOwn(calls[0][1], "responseFormat"), false);
+  assert.equal(calls[0][0][0].content, SYSTEM_PROMPT);
+  assert.match(SYSTEM_PROMPT, /YAML document/);
+  assert.match(SYSTEM_PROMPT, /pitch,time,duration,velocity/);
+  assert.doesNotMatch(SYSTEM_PROMPT, /JSON schema/);
   assert.equal(events.at(-1).type, "generation_completed");
-  assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: openai");
+  assert.equal(result.explanation, "A syncopated drum pattern.");
 });
 
-test("appends the response model to explanation and display history without changing request context", async () => {
+test("keeps model metadata out of explanations and conversation history", async () => {
   const { auth, calls, response } = createHarness();
   response.model = "openai/gpt-6-astra";
   const generator = new PollinationsMidiClient({ auth });
   const result = await generator.generate({ promptText: "Create MIDI", gptModel: "openai" });
   assert.equal(calls[0][1].model, MIDI_JOURNEY_AGENT);
-  assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: openai/gpt-6-astra");
-  assert.match(result.history[1].content, /explanation: >-\n  A syncopated drum pattern\.  Model: openai\/gpt-6-astra\nnotation:/);
+  assert.equal(result.explanation, "A syncopated drum pattern.");
+  assert.match(result.history[1].content, /explanation: >-\n  A syncopated drum pattern\.\nnotation:/);
   assert.equal(JSON.parse(result.history[1].contextContent).explanation, "A syncopated drum pattern.");
 
   response.model = "another-serving-model";
   const next = await generator.generate({ promptText: "Continue", history: result.history, historyStatus: true });
-  assert.equal(next.explanation, "A syncopated drum pattern.\n\nModel: another-serving-model");
-  assert.match(next.history[1].content, /Model: openai\/gpt-6-astra/);
-  assert.match(next.history[3].content, /Model: another-serving-model/);
+  assert.equal(next.explanation, "A syncopated drum pattern.");
+  assert.ok(next.history.every(entry => !entry.content.includes("Model: ")));
   assert.ok(calls[1][0].every(message => !message.content.includes("Model: ")));
 });
 
-test("missing or malformed response model is not misrepresented as the requested model", async () => {
+test("missing, opaque or malformed response models do not affect musical explanations", async () => {
   const { auth, response } = createHarness();
   const generator = new PollinationsMidiClient({ auth });
-  for (const model of [undefined, null, "", " \n ", 42, { name: "not-a-model-string" }]) {
+  for (const model of [undefined, null, "", " \n ", "9a0db868-29cb-4e78-9d44-ba2be6551337", 42, { name: "not-a-model-string" }]) {
     response.model = model;
     const result = await generator.generate({ promptText: "Create MIDI", gptModel: "openai" });
-    assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: not reported");
-    assert.match(result.history[1].content, /Model: not reported/);
+    assert.equal(result.explanation, "A syncopated drum pattern.");
+    assert.doesNotMatch(result.history[1].content, /Model:/);
   }
 });
 
-test("model attribution survives a maximum-length explanation and remains single-line metadata", async () => {
+test("maximum-length explanations remain intact without appended model metadata", async () => {
   const { auth, response } = createHarness();
   response.model = "  provider/model\nversion\t1  ";
   const clip = JSON.parse(response.choices[0].message.content);
   clip.explanation = "x".repeat(1000);
   response.choices[0].message.content = JSON.stringify(clip);
   const result = await new PollinationsMidiClient({ auth }).generate({ promptText: "Create MIDI" });
-  assert.equal(result.explanation, `${clip.explanation}\n\nModel: provider/model version 1`);
-  assert.ok(result.history[1].content.includes(`${clip.explanation}  Model: provider/model version 1`));
+  assert.equal(result.explanation, clip.explanation);
+  assert.ok(result.history[1].content.includes(clip.explanation));
+  assert.doesNotMatch(result.history[1].content, /Model:/);
   assert.equal(JSON.parse(result.history[1].contextContent).explanation.length, 1000);
 });
 
@@ -136,7 +137,7 @@ test("removed dropdown modelChoice cannot bypass the MIDI Journey agent", async 
     await generator.generate({ promptText: "A melody", modelChoice, gptModel: "openai" });
     const [messages, options] = calls.at(-1);
     assert.equal(options.model, MIDI_JOURNEY_AGENT);
-    assert.equal(options.responseFormat.type, "json_schema");
+    assert.equal(Object.hasOwn(options, "responseFormat"), false);
     assert.equal(options.maxTokens, 12000);
     assert.equal(Object.hasOwn(JSON.parse(messages.at(-1).content), "modelChoice"), false);
   }
@@ -331,6 +332,11 @@ test("returns safe model metadata", async () => {
 });
 
 test("maps provider failures to actionable safe categories", () => {
+  for (const status of [400, 404]) {
+    const rejection = classifyGenerationError(new PollinationsError("private provider detail", "bad", status));
+    assert.match(rejection.message, new RegExp(`MIDI Journey agent request \\(HTTP ${status}\\)`));
+    assert.doesNotMatch(rejection.message, /private provider detail|selected Pollinations model/);
+  }
   assert.equal(
     classifyGenerationError(new PollinationsError("private detail", "unauthorized", 401)).code,
     "AUTHORIZATION_REQUIRED",
