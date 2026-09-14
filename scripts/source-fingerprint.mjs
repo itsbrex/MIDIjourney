@@ -18,7 +18,7 @@ export async function sourceFingerprint(root, appKey) {
       else throw new Error("Production sources must be regular files.");
     }
   }
-  for (const directory of ["app/src", "core", "device"]) await collect(directory);
+  for (const directory of ["app/src", "app/public", "core", "device"]) await collect(directory);
   const hash = createHash("sha256");
   for (const name of files.sort()) {
     hash.update(name).update("\0");

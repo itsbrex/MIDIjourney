@@ -1,0 +1,14 @@
+MIDI Journey studio illustration
+
+Asset: app/src/assets/midi-studio.png (2172 x 724, transparent PNG).
+Created for MIDI Journey using the built-in image-generation tool.
+Art direction: Pollinations website-v2's bottom-of-card pixel-art scenes.
+Reference branch: feat/website-v2 at ae7375e0445da887a8cf5b426b76007a5196b828
+https://github.com/pollinations/pollinations/tree/ae7375e0445da887a8cf5b426b76007a5196b828/pollinations.ai
+
+This is newly generated music artwork, not a copy of the website's raster assets.
+Only this single illustration is bundled, for both light and dark mode.
+
+Generation prompt:
+
+Use case: stylized-concept. Asset type: one original wide bottom-of-card illustration for MIDI Journey, a compact music-generation chat app using the Pollinations website-v2 design language. Generate ONLY the artwork, not a UI screenshot or mockup. Wide panoramic cozy 8-bit pixel art, chunky retro sprites, clean large visible square pixels, warm lo-fi wholesome garden-studio mood. Subject: a cute round yellow bee with dark brown horizontal stripes, two black antennae, black oval eyes, pink rectangular cheek blush, tiny happy smile and rounded pale-blue translucent wings, hovering beside a friendly chunky CRT-headed robot with square pixel eyes and stubby mechanical arms. The robot is composing on a small MIDI piano keyboard at a low wooden studio desk. A nearby monitor clearly shows a piano-roll grid with a few horizontal colored MIDI-note blocks; a compact synthesizer and two modest speakers complete the music setup. Small leafy plants at the far edges, a few floating musical-note symbols near the bee. Keep it clean and musical, not a busy laboratory. Composition: extra wide landscape about 3:1, a single low horizontal vignette, clear silhouettes and recognizable keys and piano-roll. Main bee and robot grouped near the middle-right, keyboard and synth extending leftward; keep the essential subjects together so they remain recognizable in a shallow footer. No lettering, no words, no logos, no watermark, no frame, no interface cards or buttons. The area above and around the scene must be genuinely transparent with an alpha channel, not white and not a checkerboard drawing, so the same single artwork blends onto both warm cream and dark UI cards. Soft pastel cream, honey yellow, muted mint, lavender and brown; preserve confident dark pixel outlines for readability in either theme. Output a polished production-ready transparent PNG.

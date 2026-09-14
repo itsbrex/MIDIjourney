@@ -130,6 +130,92 @@ test("MIDI response cards have a comfortable maximum width without fixing their 
 	assert.doesNotMatch(reply, /(?:^|[;\s])(?:width|min-width):/);
 });
 
+test("one shared main card contains the conversation, composer, and bottom-only music scene", async () => {
+	const [workspace, scene, styles] = await Promise.all(
+		["Workspace.tsx", "ChatBottomScene.tsx", "style.css"].map((filename) =>
+			readFile(new URL(`../src/${filename}`, import.meta.url), "utf8"),
+		),
+	);
+	assert.match(
+		workspace,
+		/New chat[\s\S]*<Surface\s+role="region"\s+variant="panel"\s+className="mj-chat-panel [^"]*"[\s\S]*<ScrollArea[\s\S]*<\/ScrollArea>\s*<form[\s\S]*<\/form>[\s\S]*<ChatBottomScene \/>\s*<\/Surface>/,
+	);
+	assert.equal((workspace.match(/<ChatBottomScene \/>/g) || []).length, 1);
+	assert.match(scene, /import midiStudio from "\.\/assets\/midi-studio\.png"/);
+	assert.match(scene, /aria-hidden="true"/);
+	assert.match(scene, /src=\{midiStudio\}[\s\S]*alt=""/);
+	assert.doesNotMatch(scene, /https?:|useColorMode|chat-day|chat-night/);
+	assert.match(styles, /\.mj-chat-bottom-scene\s*\{[^}]*pointer-events: none;/);
+	assert.match(
+		styles,
+		/\.mj-chat-bottom-scene img\s*\{[^}]*object-fit: cover;/,
+	);
+	assert.match(
+		styles,
+		/\.mj-chat-bottom-scene img\s*\{[^}]*object-position: center bottom;/,
+	);
+	assert.match(
+		styles,
+		/\.mj-chat-bottom-scene\s*\{[^}]*margin: 0 calc\(-1 \* var\(--mj-panel-padding\)\)/,
+	);
+	assert.match(styles, /\.mj-chat-panel\s*\{[^}]*overflow-y: auto;/);
+});
+
+test("music scene is one local wide transparent PNG with its generation provenance", async () => {
+	const asset = await readFile(
+		new URL("../src/assets/midi-studio.png", import.meta.url),
+	);
+	assert.equal(asset.subarray(1, 4).toString(), "PNG");
+	assert.equal(asset.readUInt32BE(16), 2172);
+	assert.equal(asset.readUInt32BE(20), 724);
+	assert.equal(
+		asset[25],
+		6,
+		"RGBA PNG keeps the same scene transparent in both themes",
+	);
+	const info = await readFile(
+		new URL("../public/artwork-info.txt", import.meta.url),
+		"utf8",
+	);
+	assert.match(info, /built-in image-generation tool/);
+	assert.match(info, /Generation prompt:/);
+});
+
+test("fresh chats introduce MIDI Journey in an assistant bubble without an API call or response controls", async () => {
+	const workspace = await readFile(
+		new URL("../src/Workspace.tsx", import.meta.url),
+		"utf8",
+	);
+	const welcome = workspace
+		.slice(
+			workspace.indexOf("{!chat.turns.length ? ("),
+			workspace.indexOf("chat.turns.map("),
+		)
+		.replace(/\s+/g, " ");
+	assert.match(welcome, /className="mj-assistant-reply /);
+	assert.match(welcome, /aria-label="Welcome from MIDI Journey"/);
+	assert.match(welcome, /🎹 Hi, I’m MIDI Journey\./);
+	assert.match(welcome, /<ul className="list-disc space-y-1 pl-4">/);
+	assert.equal((welcome.match(/<li>/g) || []).length, 3);
+	assert.match(
+		welcome,
+		/<strong>Select a Live clip<\/strong> to use its MIDI as input/,
+	);
+	assert.match(
+		welcome,
+		/<strong>Create clip<\/strong> fills an empty slot or replaces the selected clip\./,
+	);
+	assert.doesNotMatch(welcome, /clips stay intact/);
+	assert.doesNotMatch(
+		welcome,
+		/<Heading|ReplyFooter|CopyDetails|onGenerate|fetch\(/,
+	);
+	assert.doesNotMatch(
+		workspace,
+		/What shall we make\?|Describe a musical idea\. Then/,
+	);
+});
+
 test("header, notices, and chat share the 30-percent narrower app limit", async () => {
 	const [app, workspace, styles] = await Promise.all(
 		["App.tsx", "Workspace.tsx", "style.css"].map((filename) =>
@@ -156,9 +242,20 @@ test("app title uses MIDI Journey title case and Enter's shared section-heading 
 
 test("production device is independent of the checkout and exposes only minimal controls", () => {
 	const { patcher } = makeDevice();
-	assert.doesNotMatch(JSON.stringify(patcher), /\/Users\/|persistent\/|extension\/|node_modules/);
-	assert.ok(patcher.boxes.some(({box}) => box.text === "node.script midijourney-server.js @autostart 1 @watch 0"));
-	const retry = patcher.boxes.find(({box}) => box.id === "retry").box;
+	assert.doesNotMatch(
+		JSON.stringify(patcher),
+		/\/Users\/|persistent\/|extension\/|node_modules/,
+	);
+	assert.ok(
+		patcher.boxes.some(
+			({ box }) =>
+				box.text === "node.script midijourney-server.js @autostart 1 @watch 0",
+		),
+	);
+	const retry = patcher.boxes.find(({ box }) => box.id === "retry").box;
 	assert.equal(retry.hidden, 1);
-	assert.equal(patcher.boxes.find(({box}) => box.id === "open").box.text, "Open");
+	assert.equal(
+		patcher.boxes.find(({ box }) => box.id === "open").box.text,
+		"Open",
+	);
 });
