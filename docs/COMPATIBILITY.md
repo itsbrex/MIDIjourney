@@ -20,7 +20,7 @@ The shared UI uses a modern embedded browser. Older bundled Max versions may not
 
 - Session View output, MIDI tracks only.
 - Current single MIDI clip is input; not the whole multi-selection.
-- Existing clips remain intact. Creation chooses an available empty slot.
+- Create clip replaces the selected Session clip's notes, title and length, or fills the selected empty slot. Other clips are not changed. Recording clips cannot be replaced.
 - One local server on 127.0.0.1:5178, accessed as localhost.
 - The browser preview has no Live mutation bridge.
 - No Extensions SDK installation or beta-only Extensions feature is required by the architecture.

@@ -4,7 +4,7 @@ Status: **source consolidation verified locally; native release acceptance pendi
 
 ## Product scope
 
-macOS; one device on Main; persistent Pollinations web UI; single-selected-clip input; new-clip creation. No automatic multi-selection, replacement of existing clips, model selector, Windows claim or Extensions SDK.
+macOS; one device on Main; persistent Pollinations web UI; single-selected-clip input; creation in empty Session slots and in-place replacement of selected MIDI clips. No automatic multi-selection, model selector, Windows claim or Extensions SDK.
 
 ## Automated and packaging checks
 
@@ -29,7 +29,8 @@ Use a saved/disposable Set, never the only copy of a user's work.
 - [ ] Sending after editing a selected MIDI clip uses its fresh notes.
 - [ ] Generate from text and generate from selected MIDI both complete.
 - [ ] Create writes the expected note count, pitch, timing, duration, velocity and clip length; native read-back passes.
-- [ ] Existing clips remain unchanged; a changed/occupied destination is rejected safely.
+- [ ] Occupied selection is replaced in place (all old notes, including notes outside the loop); title and length update. Other clips and clip identity stay unchanged.
+- [ ] Stale selection, recording, audio and Arrangement destinations are rejected before mutation. A full Session track can still replace its selected clip.
 - [ ] Undo behavior observed and documented; no unsupported grouping API.
 - [ ] Cancel, New chat and close/reopen cannot create a late clip or resurrect canceled results.
 - [ ] Prompt Copy/Paste and Response copy work inside Live.
@@ -52,3 +53,9 @@ Main may contain candidate source before the tag, but documentation must not cla
 - No V3 tag or release asset has been published. All native checks above remain open until tested on the exact frozen bytes.
 
 Record the final source commit, frozen artifact hash, OS/Live/Max versions and observed checks here. Unit tests or a clip title alone are not proof that Live received the correct notes.
+
+### 2026-09-14 — selected-clip replacement source update
+
+- The selected Session slot is now the exact destination. Existing MIDI clips are replaced in place; empty slots still create a clip. No empty-slot search remains.
+- Local build and 139 tests pass, including negative/out-of-loop note removal, marker resizing, full tracks, stale identities, recording/audio/Arrangement rejection, and failure/replay safety.
+- Native replacement is not yet verified. The linked Max editor timed out during app-control inspection; Live still has the earlier writer loaded. A fresh isolated source candidate was prepared for reload. This does not satisfy the frozen-artifact acceptance checks above.

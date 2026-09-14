@@ -18,7 +18,7 @@ Select a MIDI clip in Live. An empty slot supplies a destination but no notes. A
 
 ## Create clip is disabled
 
-Choose an empty Session slot on a MIDI track. Selecting an existing MIDI clip chooses the next available empty slot on that track; it never overwrites the clip. If the track has no available slot, add an empty scene in Live or choose another destination.
+Choose a Session slot on a MIDI track. An empty slot receives a new clip; an existing MIDI clip has its notes, title and length replaced in place. There is no automatic search for another slot. Stop recording before replacing a clip. If the destination changed since the button was clicked, select the intended clip and try again. Arrangement clips can be read as input, but writing requires a Session selection.
 
 ## A write warning appears
 

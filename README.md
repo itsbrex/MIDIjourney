@@ -1,6 +1,6 @@
 # MIDI Journey
 
-A persistent musical conversation for Ableton Live. Describe an idea, refine it with a selected MIDI clip, preview the notes, then create a new clip without closing the editor.
+A persistent musical conversation for Ableton Live. Describe an idea, refine it with a selected MIDI clip, preview the notes, then create or replace a clip without closing the editor.
 
 **V3 is being prepared for release.** Source builds are not frozen release devices. The [release checklist](docs/RELEASE_CHECKLIST.md) records the remaining native acceptance gates. Download only an explicitly published V3 asset when it becomes available; the older V2 release is a different product.
 
@@ -10,9 +10,9 @@ A persistent musical conversation for Ableton Live. Describe an idea, refine it 
 2. Press **Open**. The resizable web window stays open while you change the selection in Live.
 3. Connect through the Pollinations account menu. Sign-in opens your system browser; confirm the intended account and return to Live.
 4. Type your message. A selected MIDI clip appears as a small input badge. Its notes are read again when you send.
-5. Review the response and piano-roll preview. Select an empty Session slot on a MIDI track and press **Create clip**.
+5. Review the response and piano-roll preview. Select a Session MIDI clip to replace, or an empty slot to fill, and press **Create clip**.
 
-Selecting an existing clip uses it as input. Creation uses the next available empty slot on that track, never overwriting the source. If no suitable destination exists, Create clip is unavailable. Switching selection does not erase your prompt or conversation.
+Selecting an existing clip uses it as input. **Create clip replaces the selected Session clip's notes, title and length**, or creates a new clip in the selected empty slot. It never redirects to another slot. Other clips stay unchanged; recording clips cannot be replaced. Switching selection does not erase your prompt or conversation.
 
 The response footer shows the provider-reported model and **Response** copy action, including MIDI data and token counts. No model selector or extra technical panel. **New chat** clears this app's local conversation and creative context, not clips already created in Live.
 
@@ -24,7 +24,7 @@ The response footer shows the provider-reported model and **Response** copy acti
 
 Native acceptance of the consolidated frozen device is still pending. Do not interpret the minimum-version metadata as a tested compatibility matrix. See [Compatibility](docs/COMPATIBILITY.md).
 
-The first V3 scope is single-clip input and new-clip creation in Session View. Automatic multi-selection, overwriting clips, Windows acceptance, and the Ableton Extensions edition are deferred. The old Max UI and SDK prototypes are preserved on [codex/archive-ui-experiments](https://github.com/pollinations/MIDIjourney/tree/codex/archive-ui-experiments), not required by this app.
+The first V3 scope is single-clip input and creating or replacing MIDI clips in Session View. Automatic multi-selection, Windows acceptance, and the Ableton Extensions edition are deferred. The old Max UI and SDK prototypes are preserved on [codex/archive-ui-experiments](https://github.com/pollinations/MIDIjourney/tree/codex/archive-ui-experiments), not required by this app.
 
 ## Development
 
