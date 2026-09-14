@@ -490,7 +490,10 @@ test("routes disconnect cancellation back into the Create UI without entering th
   assert.deepEqual(destinationsFrom(node, outputRoute.id, 4), [
     [cancelOutput.id, 0],
   ]);
-  assert.deepEqual(destinationsFrom(node, outputRoute.id, 5), []);
+  assert.deepEqual(destinationsFrom(node, outputRoute.id, 5), [["obj-account-output", 0]]);
+  assert.equal(boxById(node, "obj-account-output").text, "routepass account");
+  assert.deepEqual(destinationsFrom(node, "obj-account-output", 0), [["obj-2", 0]]);
+  assert.deepEqual(destinationsFrom(node, "obj-account-output", 1), []);
   assert.deepEqual(destinationsFrom(node, cancelOutput.id), [["obj-2", 0]]);
   assert.equal(loadendRoute.text, "route loadend");
   assert.equal(loadendSuccess.text, "sel success");
@@ -531,7 +534,12 @@ test("routes disconnect cancellation back into the Create UI without entering th
   assert.equal(cancelMessage.text, "cancel");
   assert.ok(hasLine(journey, route.id, cancelMessage.id, 1, 0));
   assert.ok(hasLine(journey, cancelMessage.id, start.id, 0, 0));
-  assert.ok(hasLine(journey, route.id, "obj-22", 2, 0));
+  assert.ok(hasLine(journey, route.id, "obj-account-route", 2, 0));
+  assert.equal(boxById(journey, "obj-account-route").text, "route account");
+  assert.deepEqual(destinationsFrom(journey, "obj-account-route", 0), [["obj-account-prepend", 0]]);
+  assert.equal(boxById(journey, "obj-account-prepend").text, "prepend account");
+  assert.deepEqual(destinationsFrom(journey, "obj-account-prepend", 0), [[sharedOutput.id, 0]]);
+  assert.deepEqual(destinationsFrom(journey, "obj-account-route", 1), [["obj-22", 0]]);
   assert.equal(hasLine(journey, route.id, "obj-22", 1, 0), false);
   assert.deepEqual(destinationsFrom(journey, route.id, 0), [
     [authPrepend.id, 0],
@@ -542,6 +550,6 @@ test("routes disconnect cancellation back into the Create UI without entering th
   assert.deepEqual(destinationsFrom(journey, route.id, 1), [
     [cancelMessage.id, 0],
   ]);
-  assert.deepEqual(destinationsFrom(journey, route.id, 2), [["obj-22", 0]]);
+  assert.deepEqual(destinationsFrom(journey, route.id, 2), [["obj-account-route", 0]]);
   assert.deepEqual(destinationsFrom(journey, cancelMessage.id), [[start.id, 0]]);
 });

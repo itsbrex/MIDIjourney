@@ -1,0 +1,14 @@
+@import "@pollinations/ui/app.css";
+
+/* Keep package fonts, colors and controls. Only the editor's sizing adapts to
+   the viewport; no zoom transform that would shrink menus or hit targets. */
+body {
+	font-size: 0.875rem;
+}
+
+.mj-prompt {
+	box-sizing: border-box;
+	height: clamp(7rem, 25dvh, 13rem);
+	max-height: max(7rem, 60dvh);
+	overflow-x: hidden;
+}

@@ -138,6 +138,7 @@ function buildSyntheticFrozenCandidate(
     deflate = false,
     mutateDocuments = null,
     additionalFiles = [],
+    metadataPadding = 0,
   } = {},
 ) {
   const manifest = JSON.parse(
@@ -164,10 +165,11 @@ function buildSyntheticFrozenCandidate(
     Buffer.from(`${JSON.stringify(document, null, pretty ? 2 : 0)}\n`, "utf8"),
   );
   const metadataHeader = Buffer.alloc(16);
+  const padding = Buffer.alloc(metadataPadding, 0x20);
   metadataHeader.write("mx@c", 0, "ascii");
   metadataHeader.writeUInt32BE(16, 4);
   const metadataLength =
-    metadataHeader.length + documentBuffers.reduce((total, item) => total + item.length, 0);
+    metadataHeader.length + padding.length + documentBuffers.reduce((total, item) => total + item.length, 0);
   const archiveGroups = ["node_content", "patchers", "images"].map((directory) => ({
     directory,
     files: files.filter(
@@ -181,10 +183,10 @@ function buildSyntheticFrozenCandidate(
   const zip = Buffer.concat(archives);
   const tailOffset = 32 + metadataLength + zip.length;
   metadataHeader.writeUInt32BE(tailOffset - 32, 12);
-  const metadata = Buffer.concat([metadataHeader, ...documentBuffers]);
+  const metadata = Buffer.concat([metadataHeader, padding, ...documentBuffers]);
 
   const records = [];
-  let documentOffset = metadataHeader.length;
+  let documentOffset = metadataHeader.length + padding.length;
   for (let index = 0; index < documentBuffers.length; index += 1) {
     records.push({
       type: "JSON",
@@ -810,6 +812,18 @@ function testStrictExternalCandidateVerification() {
     assert.equal(result.canonicalAssetCount, expectedNames.size);
     assert.equal(result.candidateDigest, crypto.createHash("sha256").update(candidate).digest("hex"));
     assert.ok(result.verifiedBuffer.equals(candidate));
+
+    // A valid binary directory offset may contain an opening-brace byte. It
+    // must not be mistaken for the beginning of the first JSON document.
+    const metadataPadding = (0x7b - (candidate.readUInt32BE(44) & 0xff) + 256) % 256;
+    const braceInHeader = buildSyntheticFrozenCandidate(projectDirectory, { metadataPadding });
+    assert.equal(braceInHeader.candidate[47], 0x7b);
+    assert.equal(verifyMaxReleaseCandidate({
+      devicePath: braceInHeader.candidatePath,
+      projectDirectory,
+      bundlePath: dummyBundle,
+      quiet: true,
+    }).canonicalAssetCount, expectedNames.size);
 
     const cacheIsolatedProject = prepareMaxReleaseProject({
       releaseRoot: path.join(temporaryRoot, "cache-isolated-candidate"),
@@ -1628,7 +1642,7 @@ function testSafeConnectHarness() {
     );
     assert.equal(
       boxes["obj-pollinations-status-connected"]?.text,
-      "text Connected, texton Connected, set 0, active 1",
+      "text Connected, texton Connected, set 0, active 0",
     );
     assert.equal(
       boxes["obj-pollinations-status-pending"]?.text,
@@ -2004,7 +2018,11 @@ function testProviderClipHarness() {
     assert.ok(hasLine(journey, authPrepend.id, promptOutlet.id, 0, 0));
     assert.ok(hasLine(journey, authRoute.id, cancelMessage.id, 1, 0));
     assert.ok(hasLine(journey, cancelMessage.id, start.id, 0, 0));
-    assert.ok(hasLine(journey, authRoute.id, "obj-22", 2, 0));
+    assert.ok(hasLine(journey, authRoute.id, "obj-account-route", 2, 0));
+    assert.ok(hasLine(journey, "obj-account-route", "obj-account-prepend", 0, 0));
+    assert.ok(hasLine(journey, "obj-account-prepend", promptOutlet.id, 0, 0));
+    assert.ok(hasLine(journey, "obj-account-route", "obj-22", 1, 0));
+    assert.equal(hasLine(journey, authRoute.id, "obj-22"), false);
     assert.equal(hasLine(journey, node.id, "obj-22", 0, 0), false);
     assert.equal(
       (journey.lines || []).filter(
@@ -2021,7 +2039,7 @@ function testProviderClipHarness() {
         [0, authPrepend.id],
         [0, id("auth-state")],
         [1, cancelMessage.id],
-        [2, "obj-22"],
+        [2, "obj-account-route"],
       ].sort(),
     );
     assert.equal(
@@ -2161,7 +2179,9 @@ function testProviderClipHarness() {
     const sharedOutputRoute = rootBoxes["obj-pollinations-shared-output-route"];
     assert.equal(sharedOutputRoute?.text, "route auth");
     assert.ok(hasLine(rootPatcher, journeyBox.id, sharedOutputRoute.id, 1, 0));
-    assert.ok(hasLine(rootPatcher, sharedOutputRoute.id, preferences.id, 1, 0));
+    assert.ok(hasLine(rootPatcher, sharedOutputRoute.id, "obj-account-route", 1, 0));
+    assert.ok(hasLine(rootPatcher, "obj-account-route", "obj-account-panel", 0, 0));
+    assert.ok(hasLine(rootPatcher, "obj-account-route", preferences.id, 1, 0));
     assert.ok(
       hasLine(
         rootPatcher,
@@ -2278,6 +2298,6 @@ try {
     "Max staging manifests, active frozen graphs, ZIP indexes, and rollback-safe file promotion verified.\n",
   );
 } catch (error) {
-  process.stderr.write(`Max release portability test failed: ${error.message}\n`);
+  process.stderr.write(`Max release portability test failed: ${error.stack || error.message}\n`);
   process.exitCode = 1;
 }

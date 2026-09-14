@@ -41,7 +41,7 @@ function createHarness(responseOverride) {
     ],
   };
   const auth = { requireClient: () => client };
-  return { auth, calls };
+  return { auth, calls, response };
 }
 
 test("generates strict structured MIDI and removes legacy API keys", async () => {
@@ -64,6 +64,48 @@ test("generates strict structured MIDI and removes legacy API keys", async () =>
   assert.equal(calls[0][0][0].role, "system");
   assert.equal(calls[0][1].responseFormat.type, "json_schema");
   assert.equal(events.at(-1).type, "generation_completed");
+  assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: openai");
+});
+
+test("appends the response model to explanation and display history without changing request context", async () => {
+  const { auth, calls, response } = createHarness();
+  response.model = "openai/gpt-6-astra";
+  const generator = new PollinationsMidiClient({ auth });
+  const result = await generator.generate({ promptText: "Create MIDI", gptModel: "openai" });
+  assert.equal(calls[0][1].model, "openai");
+  assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: openai/gpt-6-astra");
+  assert.match(result.history[1].content, /explanation: >-\n  A syncopated drum pattern\.  Model: openai\/gpt-6-astra\nnotation:/);
+  assert.equal(JSON.parse(result.history[1].contextContent).explanation, "A syncopated drum pattern.");
+
+  response.model = "another-serving-model";
+  const next = await generator.generate({ promptText: "Continue", history: result.history, historyStatus: true });
+  assert.equal(next.explanation, "A syncopated drum pattern.\n\nModel: another-serving-model");
+  assert.match(next.history[1].content, /Model: openai\/gpt-6-astra/);
+  assert.match(next.history[3].content, /Model: another-serving-model/);
+  assert.ok(calls[1][0].every(message => !message.content.includes("Model: ")));
+});
+
+test("missing or malformed response model is not misrepresented as the requested model", async () => {
+  const { auth, response } = createHarness();
+  const generator = new PollinationsMidiClient({ auth });
+  for (const model of [undefined, null, "", " \n ", 42, { name: "not-a-model-string" }]) {
+    response.model = model;
+    const result = await generator.generate({ promptText: "Create MIDI", gptModel: "openai" });
+    assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: not reported");
+    assert.match(result.history[1].content, /Model: not reported/);
+  }
+});
+
+test("model attribution survives a maximum-length explanation and remains single-line metadata", async () => {
+  const { auth, response } = createHarness();
+  response.model = "  provider/model\nversion\t1  ";
+  const clip = JSON.parse(response.choices[0].message.content);
+  clip.explanation = "x".repeat(1000);
+  response.choices[0].message.content = JSON.stringify(clip);
+  const result = await new PollinationsMidiClient({ auth }).generate({ promptText: "Create MIDI" });
+  assert.equal(result.explanation, `${clip.explanation}\n\nModel: provider/model version 1`);
+  assert.ok(result.history[1].content.includes(`${clip.explanation}  Model: provider/model version 1`));
+  assert.equal(JSON.parse(result.history[1].contextContent).explanation.length, 1000);
 });
 
 test("maps legacy model selections to the Pollinations default", async () => {
@@ -76,6 +118,21 @@ test("maps legacy model selections to the Pollinations default", async () => {
     calls.map((call) => call[1].model),
     ["openai", "openai", "openai", "openai"],
   );
+});
+
+test("removed dropdown modelChoice cannot override the existing request model", async () => {
+  const { auth, calls } = createHarness();
+  const client = auth.requireClient();
+  client.textModels = () => { assert.fail("generation must not query the removed selector's model catalog"); };
+  const generator = new PollinationsMidiClient({ auth });
+  for (const modelChoice of [undefined, "auto", "openai/gpt-6-astra", "not-in-menu"]) {
+    await generator.generate({ promptText: "A melody", modelChoice, gptModel: "openai" });
+    const [messages, options] = calls.at(-1);
+    assert.equal(options.model, "openai");
+    assert.equal(options.responseFormat.type, "json_schema");
+    assert.equal(options.maxTokens, 12000);
+    assert.equal(Object.hasOwn(JSON.parse(messages.at(-1).content), "modelChoice"), false);
+  }
 });
 
 test("rejects invalid provider MIDI before it reaches Max", async () => {

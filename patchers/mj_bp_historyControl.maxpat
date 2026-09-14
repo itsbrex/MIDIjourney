@@ -1858,12 +1858,14 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 110.0, -275.0, 157.0, 21.0 ],
-					"presentation" : 1,
+					"presentation" : 0,
 					"presentation_rect" : [ 375.0, 6.0, 80.0, 21.0 ],
 					"text" : "History",
 					"textcolor" : [ 0.008976, 0.0, 0.086957, 1.0 ],
 					"textjustification" : 1,
 					"varname" : "historyTitle"
+				,
+					"hidden" : 1
 				}
 
 			}
@@ -1879,7 +1881,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 75.0, -280.0, 30.0, 31.030927777290344 ],
-					"presentation" : 1,
+					"presentation" : 0,
 					"presentation_rect" : [ 375.0, 5.0, 80.0, 20.0 ],
 					"proportion" : 0.39,
 					"saved_attribute_attributes" : 					{
@@ -1890,6 +1892,8 @@
 					}
 ,
 					"varname" : "historyBg"
+				,
+					"hidden" : 1
 				}
 
 			}
@@ -3537,7 +3541,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"patching_rect" : [ 40.0, -280.0, 30.0, 31.030927777290344 ],
-					"presentation" : 1,
+					"presentation" : 0,
 					"presentation_rect" : [ 375.0, 15.0, 80.0, 20.0 ],
 					"proportion" : 0.39,
 					"rounded" : 0,
@@ -3549,6 +3553,8 @@
 					}
 ,
 					"varname" : "historyBgHack"
+				,
+					"hidden" : 1
 				}
 
 			}

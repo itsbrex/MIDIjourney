@@ -1,5 +1,7 @@
 # V3 release checklist
 
+The checked packaging/Live smoke results below describe the previously promoted candidate H. The balance-and-dashboard source update must pass a fresh Live-hosted smoke, native freeze, and strict promotion before those results apply to the new UI.
+
 ## Build and dependencies
 
 - [ ] `npm ci --ignore-scripts` succeeds from a clean checkout.
@@ -46,9 +48,15 @@
 ## Ableton acceptance
 
 - [x] The source device remains a transparent Max Audio Effect for the Main track and its connection control is not automatable.
-- [x] The compact device exposes **Create / History / Connect**, **Connected** acts as Disconnect, and there is no authorization modal.
+- [ ] The compact device exposes **Create**, **Connect**, balance, and **↗**; account actions work without a modal or feedback loop.
 - [x] Live 12.4.5 with Max 9.0.3 passes the current macOS release-candidate smoke and production create path.
-- [ ] The Pollinations-agent model selector lists only supported models, changes the model used for generation, and falls back safely to the Pollinations default for old Sets or an unavailable model catalog.
+- [x] Automated tests verify the removed dropdown cannot override the model or decorate request dictionaries.
+- [x] Live visually confirms the restored full-width MIDI Prompt row and account controls in the embedded device panel only (source preview, 2026-09-13).
+- [x] Automated tests verify device-control bounds and History toggle z-order so transparent bpatcher margins cannot swallow clicks.
+- [ ] Funded balance, zero balance, and the dashboard-opening arrow are verified in Live with Max editing closed.
+- [x] The source preview restores existing authorization and displays a funded balance in Live with Max editing closed (2026-09-13); first-time consent, zero balance, and the browser link still need live acceptance.
+- [x] Automated tests verify the embedded login uses **connect**, not a disconnect toggle, and that rendering/restoring state never triggers authorization.
+- [ ] Verify first-time/reconnection access through the embedded **Connect** button in Live before release.
 - [ ] Live 12.4.x with its bundled Max 9.0.x or later passes on Windows 11.
 - [ ] Empty slots, existing clips, Arrangement clips, and Session clips are covered.
 - [ ] Undo/redo and Live Set reopen behavior are correct.
@@ -67,5 +75,5 @@
 - [x] Version, minimum Live/Max metadata, description, and tags are correct.
 - [ ] README, changelog, screenshots, and release notes match the shipped device.
 - [x] The release artifact checksum is recorded.
-- [ ] Pollinations-agent model swapping and the device selector are complete before tagging `v3.0.0`.
+- [x] Model selector and request override removed from scope; model swapping is no longer a release gate.
 - [ ] A clean-machine smoke test passes before tagging `v3.0.0`.

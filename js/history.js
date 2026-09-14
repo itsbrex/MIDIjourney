@@ -1,5 +1,6 @@
 const { CONFIG } = require("./config.js");
 const { sanitizeInputNotes } = require("./encoding/midiClip.js");
+const MAX_SOURCE_CLIPS = 8;
 
 const SECRET_PATTERN = /\b(?:sk|pk)_[A-Za-z0-9_-]{12,}\b/g;
 
@@ -56,6 +57,24 @@ function buildRequest(input) {
       }
     : null;
 
+  // Opt-in multi-clip input. Keep the original single-clip request unchanged.
+  if (Array.isArray(input?.sourceClips)) {
+    if (input.sourceClips.length > MAX_SOURCE_CLIPS) {
+      throw new Error(`Attach up to ${MAX_SOURCE_CLIPS} MIDI clips per message.`);
+    }
+    return {
+      instruction: promptText,
+      requestedDuration,
+      sourceClips: input.sourceClips.map((clip) => ({
+        title: safeText(clip?.title, 100).trim() || null,
+        key: safeText(clip?.key, 40).trim() || null,
+        duration: typeof clip?.duration === "number" && Number.isFinite(clip.duration) &&
+          clip.duration > 0 && clip.duration <= CONFIG.maxClipBeats ? clip.duration : 8,
+        notes: sanitizeInputNotes(clip?.notes),
+      })),
+    };
+  }
+
   return {
     instruction: promptText,
     requestedDuration,
@@ -81,8 +100,20 @@ function displayUserContent(request) {
   return `# Prompt\n${request.instruction}\n\n# Response`;
 }
 
-function displayAssistantContent(clip) {
-  const explanation = safeText(clip.explanation, 1000).replace(/\n/g, " ");
+function explanationWithModel(explanation, model) {
+  const body = safeText(explanation, 1000).trim();
+  const name = typeof model === "string"
+    ? safeText(model.replace(/\s+/g, " ").trim(), 100)
+    : "";
+  return [body, `Model: ${name || "not reported"}`].filter(Boolean).join("\n\n");
+}
+
+function displayAssistantContent(clip, model) {
+  // Add attribution after bounding the musical explanation so long responses
+  // cannot truncate it. Existing history callers without metadata stay unchanged.
+  const explanation = (model === undefined
+    ? safeText(clip.explanation, 1000)
+    : explanationWithModel(clip.explanation, model)).replace(/\n/g, " ");
   const key = clip.key || "unknown";
   const notation = clip.notes
     .map(
@@ -101,6 +132,29 @@ notation: |-
 }
 
 function serializeContext(value) {
+  if (Array.isArray(value?.sourceClips)) {
+    const withNotes = (count) => ({
+      ...value,
+      sourceClips: value.sourceClips.map((clip) => ({
+        ...clip,
+        notes: clip.notes.slice(0, count),
+        ...(clip.notes.length > count ? { omittedNotes: clip.notes.length - count } : {}),
+      })),
+    });
+    let serialized = JSON.stringify(value);
+    if (serialized.length <= CONFIG.maxContextEntryLength) return serialized;
+    let low = 0, high = Math.max(0, ...value.sourceClips.map((clip) => clip.notes.length));
+    serialized = JSON.stringify(withNotes(0));
+    while (low <= high) {
+      const middle = Math.floor((low + high) / 2);
+      const candidate = JSON.stringify(withNotes(middle));
+      if (candidate.length <= CONFIG.maxContextEntryLength) {
+        serialized = candidate;
+        low = middle + 1;
+      } else high = middle - 1;
+    }
+    return serialized;
+  }
   const notes = Array.isArray(value?.notes)
     ? value.notes
     : Array.isArray(value?.sourceClip?.notes)
@@ -136,7 +190,7 @@ function serializeContext(value) {
   return best;
 }
 
-function appendHistory(history, request, clip) {
+function appendHistory(history, request, clip, model) {
   const normalized = normalizeHistory(history);
   const userContext = serializeContext(request);
   const assistantContext = serializeContext(clip);
@@ -149,7 +203,7 @@ function appendHistory(history, request, clip) {
     },
     {
       role: "assistant",
-      content: displayAssistantContent(clip),
+      content: displayAssistantContent(clip, model),
       contextContent: assistantContext,
     },
   ].slice(-CONFIG.maxHistoryMessages);
@@ -158,5 +212,7 @@ function appendHistory(history, request, clip) {
 exports.appendHistory = appendHistory;
 exports.buildContext = buildContext;
 exports.buildRequest = buildRequest;
+exports.explanationWithModel = explanationWithModel;
 exports.normalizeHistory = normalizeHistory;
 exports.redactSecrets = redactSecrets;
+exports.MAX_SOURCE_CLIPS = MAX_SOURCE_CLIPS;

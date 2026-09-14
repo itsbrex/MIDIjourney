@@ -23,6 +23,7 @@ const STAGING_MANIFEST_FORMAT = "midijourney-max-release-staging";
 const STAGING_MANIFEST_VERSION = 1;
 const RELEASE_BUNDLE_SOURCE_PATHS = [
   "js/build-release.js",
+  "js/accountPanel.js",
   "js/config.js",
   "js/credentialStore.js",
   "js/encoding/midiClip.js",

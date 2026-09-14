@@ -1,0 +1,19 @@
+{
+  "name": "midijourney-ableton-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm --prefix ../web run build && npm run typecheck && node scripts/build.mjs",
+    "typecheck": "../web/node_modules/.bin/tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "start": "ableton-extensions-cli run"
+  },
+  "dependencies": {
+    "@ableton-extensions/sdk": "file:.sdk/ableton-extensions-sdk-1.0.0-beta.1.tgz"
+  },
+  "devDependencies": {
+    "@ableton-extensions/cli": "file:.sdk/ableton-extensions-cli-1.0.0-beta.1.tgz",
+    "node": "24.16.0"
+  }
+}

@@ -1,0 +1,198 @@
+/* Declare order before importing the package's prebuilt utilities and Tailwind
+   preflight, so development CSS does not reset package fonts and spacing. */
+@layer theme, base, components, utilities;
+@import "@pollinations/ui/app.css";
+
+/* Shared Pollinations fonts, colors and controls; compact, resizable chat host. */
+body {
+	font-size: 0.875rem;
+}
+.mj-app-width {
+	max-width: 44.8rem;
+}
+.mj-new-chat {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	min-height: 2.5rem;
+}
+.mj-user-message {
+	background: color-mix(
+		in oklab,
+		var(--polli-color-bg-active) 45%,
+		var(--polli-color-surface-opaque)
+	);
+}
+.mj-assistant-reply {
+	background: var(--polli-color-surface-opaque);
+	max-width: 31.5rem;
+}
+.mj-scroll {
+	--polli-color-scrollbar-thumb: color-mix(
+		in oklab,
+		var(--color-theme-text-muted) 45%,
+		transparent
+	);
+}
+.mj-scroll::-webkit-scrollbar-button {
+	display: none;
+}
+.mj-scroll::-webkit-scrollbar-corner {
+	background: transparent;
+}
+.mj-reply-title {
+	font-family: var(--font-body);
+	font-size: 1rem;
+	font-weight: 500;
+	line-height: 1.4;
+	letter-spacing: normal;
+}
+.mj-prompt {
+	box-sizing: border-box;
+	height: clamp(4rem, 12dvh, 7rem);
+	min-height: 3.5rem;
+	max-height: 25dvh;
+	overflow-x: hidden;
+	resize: none;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+.mj-prompt:focus {
+	outline: none;
+	box-shadow: none;
+}
+.mj-composer {
+	border: 1px dotted var(--color-theme-text-muted);
+	border-radius: 0.75rem;
+	background: transparent;
+	overflow: hidden;
+}
+.mj-composer:focus-within {
+	outline: 2px dotted var(--color-theme-text-base);
+	outline-offset: 2px;
+}
+.mj-midi-inputs {
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+	max-height: 25dvh;
+	overflow-y: auto;
+}
+.mj-midi-inputs:not(:empty) {
+	padding: 0.625rem 0.625rem 0;
+}
+.mj-midi-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	width: fit-content;
+	max-width: min(100%, 18rem);
+	padding: 0.375rem 0.5rem;
+	border-radius: 0.5rem;
+	background: var(--color-theme-bg-subtle);
+	box-shadow: none;
+}
+.mj-thinking-dots {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+.mj-thinking-dots > span {
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+	background: currentColor;
+	animation: mj-thinking 1.2s ease-in-out infinite;
+}
+.mj-thinking-dots > span:nth-child(2) {
+	animation-delay: 0.15s;
+}
+.mj-thinking-dots > span:nth-child(3) {
+	animation-delay: 0.3s;
+}
+@keyframes mj-thinking {
+	0%,
+	60%,
+	100% {
+		opacity: 0.35;
+		transform: translateY(0);
+	}
+	30% {
+		opacity: 1;
+		transform: translateY(-3px);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.mj-thinking-dots > span {
+		animation: none;
+	}
+}
+
+.mj-prompt-clipboard {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	background: color-mix(
+		in srgb,
+		var(--color-theme-text-muted) 18%,
+		var(--polli-color-surface-opaque)
+	);
+	color: var(--color-theme-text-base);
+}
+.mj-copy-details {
+	padding: 0.25rem 0;
+	background: transparent;
+	border: 0;
+	color: var(--color-theme-text-muted);
+	font-size: 0.75rem;
+	cursor: pointer;
+}
+.mj-copy-details:hover {
+	color: var(--color-theme-text-base);
+}
+.mj-copy-details:focus-visible {
+	outline: 2px solid var(--color-theme-border);
+	outline-offset: 4px;
+}
+.mj-create-clip:disabled {
+	background: var(--color-theme-bg-subtle);
+	color: var(--color-theme-text-muted);
+}
+.mj-piano-roll {
+	display: block;
+	width: 100%;
+	height: 128px;
+	border-radius: 0.5rem;
+	overflow: hidden;
+}
+.mj-roll-lane {
+	fill: var(--color-theme-bg-pale);
+}
+.mj-roll-lane-dark {
+	fill: var(--color-theme-bg-subtle);
+}
+.mj-roll-key {
+	fill: var(--color-theme-text-muted);
+	opacity: 0.2;
+}
+.mj-roll-key-dark {
+	fill: var(--color-theme-text-base);
+	opacity: 0.65;
+}
+.mj-roll-grid {
+	stroke: var(--color-theme-text-muted);
+	stroke-width: 0.5;
+	opacity: 0.2;
+}
+.mj-roll-note {
+	fill: var(--color-theme-text-strong);
+}

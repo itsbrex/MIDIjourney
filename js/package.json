@@ -6,7 +6,7 @@
   "main": "midiJourney.js",
   "scripts": {
     "test": "node --test",
-    "check": "node --check build-release.js && node --check midiJourney.js && node --check pollinationsAuth.js && node --check pollinationsClient.js && node --check systemPrompt.js && node --check credentialStore.js && node --check sanitize.js",
+    "check": "node --check build-release.js && node --check midiJourney.js && node --check pollinationsAuth.js && node --check pollinationsClient.js && node --check accountPanel.js && node --check systemPrompt.js && node --check credentialStore.js && node --check sanitize.js",
     "build:release": "node build-release.js",
     "prepare:max-release": "node ../scripts/prepare-max-release-project.js",
     "build:max-release": "npm run build:release && npm run prepare:max-release",

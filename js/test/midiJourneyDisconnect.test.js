@@ -53,3 +53,40 @@ test("disconnect cancels generation and notifies Max before clearing authorizati
     "auth.disconnect",
   ]);
 });
+
+test("internal connection command preserves disconnect, connect, and cancel paths without touching real credentials", async (t) => {
+  const maxUtils = require("../maxUtils/max.js");
+  const { PollinationsAuth } = require("../pollinationsAuth.js");
+  const { PollinationsMidiClient } = require("../pollinationsClient.js");
+  const midiJourneyPath = require.resolve("../midiJourney.js");
+  const events = [];
+  let status = "connected", handlers;
+  t.mock.method(PollinationsAuth.prototype, "initialize", async () => ({ status }));
+  t.mock.method(PollinationsAuth.prototype, "getState", () => ({ status }));
+  t.mock.method(PollinationsAuth.prototype, "connect", async () => events.push("connect"));
+  t.mock.method(PollinationsAuth.prototype, "disconnect", async () => events.push("disconnect"));
+  t.mock.method(PollinationsAuth.prototype, "cancel", () => events.push("cancel-connection"));
+  t.mock.method(PollinationsMidiClient.prototype, "cancel", () => events.push("cancel-generation"));
+  t.mock.method(maxUtils, "outletToMax", async (...args) => events.push(args.join(" ")));
+  t.mock.method(maxUtils, "postToMax", () => {});
+  t.mock.method(maxUtils, "addHandlers", (registered) => { handlers = registered; });
+  t.mock.method(maxUtils, "registerShutdownHook", () => {});
+  delete require.cache[midiJourneyPath];
+  t.after(() => { delete require.cache[midiJourneyPath]; });
+  require(midiJourneyPath);
+  for (status of ["connected", "offline"]) {
+    events.length = 0;
+    await handlers.toggleConnection();
+    assert.deepEqual(events, ["cancel-generation", "cancel", "disconnect"]);
+  }
+  for (status of ["disconnected", "error"]) {
+    events.length = 0;
+    await handlers.toggleConnection();
+    assert.deepEqual(events, ["connect"]);
+  }
+  for (status of ["connecting", "awaiting_approval"]) {
+    events.length = 0;
+    await handlers.toggleConnection();
+    assert.deepEqual(events, ["cancel-connection"]);
+  }
+});

@@ -6,7 +6,7 @@ const {
   MidiValidationError,
   parseMidiClipResponse,
 } = require("./encoding/midiClip.js");
-const { appendHistory, buildContext, buildRequest } = require("./history.js");
+const { appendHistory, buildContext, buildRequest, explanationWithModel } = require("./history.js");
 const { stripSensitiveFields } = require("./sanitize.js");
 
 function generationAbortError() {
@@ -200,11 +200,14 @@ class PollinationsMidiClient {
 
       const content = response?.choices?.[0]?.message?.content;
       const clip = parseMidiClipResponse(content);
+      // Use response metadata, not the requested alias or model-generated prose.
+      // Missing metadata stays explicitly unknown; it must not imply a model ran.
+      const reportedModel = response.model ?? null;
       const result = {
         ...safeInput,
-        history: appendHistory(safeInput.history, request, clip),
+        history: appendHistory(safeInput.history, request, clip, reportedModel),
         title: clip.title,
-        explanation: clip.explanation,
+        explanation: explanationWithModel(clip.explanation, reportedModel),
         key: clip.key,
         duration: clip.duration,
         notes: clip.notes,

@@ -104,3 +104,26 @@ test("keeps large MIDI context as valid bounded JSON", () => {
   }
   assert.ok(JSON.parse(history[1].contextContent).notes.length < notes.length);
 });
+
+test("multi-clip requests preserve per-clip timing and reject excess or invalid inputs", () => {
+  const { MAX_SOURCE_CLIPS } = require("../history.js");
+  const clip = { title: "Input", duration: 8, notes: [{ pitch: 60, start_time: 0, duration: 1, velocity: 81.5 }] };
+  const request = buildRequest({ promptText: "Combine them", sourceClips: [clip, { ...clip, title: "Second", duration: 16 }] });
+  assert.equal(request.sourceClips[1].duration, 16);
+  assert.equal(request.sourceClips[1].notes[0].start_time, 0);
+  assert.equal(request.sourceClips[0].notes[0].velocity, 81.5);
+  assert.throws(() => buildRequest({ promptText: "Many", sourceClips: Array(MAX_SOURCE_CLIPS + 1).fill(clip) }), /up to/);
+  assert.throws(() => buildRequest({ promptText: "Invalid", sourceClips: [clip, { ...clip, notes: [{ ...clip.notes[0], pitch: -1 }] }] }), /invalid MIDI/);
+});
+
+test("dense multi-clip conversation context remains bounded valid JSON with every title", () => {
+  const { MAX_SOURCE_CLIPS } = require("../history.js");
+  const notes = Array.from({ length: CONFIG.maxInputNotes }, (_, i) => ({ pitch: 60, start_time: i, duration: 0.5, velocity: 90 }));
+  const request = buildRequest({ promptText: "x".repeat(CONFIG.maxPromptLength), sourceClips: Array.from({ length: MAX_SOURCE_CLIPS }, (_, i) => ({ title: `Clip ${i}`, duration: 4096, notes })) });
+  const [entry] = appendHistory([], request, { title: "Result", explanation: "Test", duration: 4, notes: notes.slice(0, 1) });
+  assert.ok(entry.contextContent.length <= CONFIG.maxContextEntryLength);
+  const saved = JSON.parse(entry.contextContent);
+  assert.equal(saved.sourceClips.length, MAX_SOURCE_CLIPS);
+  assert.deepEqual(saved.sourceClips.map((clip) => clip.title), request.sourceClips.map((clip) => clip.title));
+  assert.ok(saved.sourceClips.every((clip) => clip.notes.length > 0 && clip.omittedNotes > 0));
+});

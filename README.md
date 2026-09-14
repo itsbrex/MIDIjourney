@@ -4,6 +4,8 @@ MIDIjourney turns plain-language musical ideas into editable MIDI clips inside A
 
 V3 keeps the focused workflow of the original device while modernizing its AI connection, MIDI validation, security, and Live 12 compatibility.
 
+An independent [Pollinations UI / Ableton Extensions prototype](web/README.md) now lives in `web/` and `extension/`. It uses Ableton's Extensions SDK without Max, but requires the Extensions-enabled Live beta. The existing AMXD workflow below is unchanged; the prototype is not a published release.
+
 ## What it does
 
 - Generates or remixes MIDI from a written prompt.
@@ -30,11 +32,21 @@ See [Privacy](docs/PRIVACY.md) for what is sent to Pollinations and how authoriz
 1. Download `MIDIjourney.amxd` from the latest release.
 2. Place it anywhere in your Ableton User Library.
 3. Add MIDIjourney to Live's **Main** track. It is intentionally packaged as a transparent Max Audio Effect so one device can create or edit clips anywhere in the Set through the Live Object Model.
-4. Use the compact **Create / History / Connect** controls directly in the device panel, and click **Connect**.
-5. Complete the authorization in the Pollinations browser window that opens. The device button changes to **Connected** when approval finishes.
-6. Click **Create** to open MIDIjourney's floating editor, select a MIDI clip or empty MIDI clip slot in Live, describe the music you want, and create the clip.
+4. Click **Connect** in the device panel at the bottom of Live.
+5. Complete the authorization in the Pollinations browser window that opens, then click **Create** to open the floating editor.
+6. Select a MIDI clip or empty MIDI clip slot in Live, describe the music you want, and create the clip.
 
-While MIDIjourney checks the connection, opens the browser, or waits for authorization, the compact button shows **Connecting...** and is temporarily disabled. It returns to **Connect** after a disconnection or authorization error. Authorization is stored in the operating system credential store: Keychain on macOS and user-scoped DPAPI protection on Windows. It is not stored in the Live Set, prompt history, AMXD, or Max dictionaries. Click **Connected** to cancel any in-flight generation, disconnect, and remove the saved authorization from that computer.
+The source preview's embedded device panel contains **Create**, **Connect**, and a balance row with a **↗** dashboard link. Connect becomes a passive **Connected** label after authorization; it is not a disconnect toggle. Zero stays **0**; an unavailable balance shows **—**, not zero. **↗** opens the [Pollinations dashboard](https://enter.pollinations.ai/) using your browser's signed-in session. Its hover label is “Open Pollinations dashboard.” It does not purchase anything automatically. There is no disconnect icon, profile picture, name, model dropdown, or separate account menu.
+
+Authorization is stored in the operating system credential store: Keychain on macOS and user-scoped DPAPI protection on Windows. It is not stored in the Live Set, prompt history, AMXD, or Max dictionaries. Account management remains in the [Pollinations dashboard](https://enter.pollinations.ai/).
+
+## Minimal editor
+
+The model dropdown and its request override have been removed. Generation keeps the existing configured/default model behavior, without an extra model-catalog lookup or automatic model switching.
+
+The floating Create editor has its original full-width **MIDI Prompt** row again. The **Text Prompt**, Create controls, and explanation/history area retain their existing layout. Account controls live only in the embedded device panel, not in the floating window. The History toggle and saved prompt archive are preserved.
+
+These UI changes are currently a source preview. The tracked frozen AMXD still contains the earlier compact Create / History / Connect interface until the new Live-hosted acceptance and freeze are complete. Existing authorization is restored automatically. First-time login and reconnection are available through **Connect** in the embedded device panel. Opening the dashboard does not authorize the device. Moving account controls does not remove saved authorization, clear creative history, or change the app key.
 
 ## History
 
@@ -93,7 +105,7 @@ Before publishing, quit Live and Max, make the external staging project temporar
 
 ## Release status
 
-V3 has reached a macOS release candidate. The final `v3.0.0` tag and GitHub Release are intentionally on hold until the Pollinations agent supports model swapping in the device, and until Windows 11 and clean-machine acceptance are complete. The release checklist is in [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md); the local implementation plan is intentionally not committed.
+V3 has reached a macOS release candidate. The final `v3.0.0` tag and GitHub Release are intentionally on hold until the simplified UI, authorization access, Windows 11, and clean-machine acceptance are complete. A model selector is no longer a release requirement. The release checklist is in [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md); the local implementation plan is intentionally not committed.
 
 Upgrading users can follow [Migrating from V2 to V3](docs/MIGRATION_V2_TO_V3.md). Connection and clip-creation help is in [Troubleshooting](docs/TROUBLESHOOTING.md).
 

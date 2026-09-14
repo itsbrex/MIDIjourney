@@ -5,6 +5,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { installAccountUi } = require("./sync-account-ui");
 
 const root = path.resolve(__dirname, "..");
 const devicePath = path.join(root, "MIDIjourney.source.amxd");
@@ -1965,6 +1966,7 @@ function synchronize(device) {
   }
   updateReleaseDependency(rootPatcher);
   updateComments(rootPatcher);
+  installAccountUi(device);
   return device;
 }
 

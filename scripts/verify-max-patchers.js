@@ -652,7 +652,11 @@ if (
   !hasLine(nodePatcher, nodeDisconnectMessage.id, nodeCommandDefer.id, 0, 0) ||
   !hasLine(nodePatcher, nodeStatusMessage.id, nodeCommandDefer.id, 0, 0) ||
   !hasLine(nodePatcher, nodeCommandDefer.id, "obj-273", 0, 0) ||
-  !hasLine(nodePatcher, nodeCommandRoute.id, "obj-8", 4, 0) ||
+  !hasLine(nodePatcher, nodeCommandRoute.id, "obj-account-commands", 4, 0) ||
+  boxById(nodePatcher, "obj-account-commands")?.text !== "routepass accountRefresh accountDashboard" ||
+  !hasLine(nodePatcher, "obj-account-commands", nodeCommandDefer.id, 0, 0) ||
+  !hasLine(nodePatcher, "obj-account-commands", nodeCommandDefer.id, 1, 0) ||
+  !hasLine(nodePatcher, "obj-account-commands", "obj-8", 2, 0) ||
   [0, 1, 2, 3].some((outlet) =>
     hasLine(nodePatcher, nodeCommandRoute.id, "obj-8", outlet, 0),
   ) ||
@@ -671,11 +675,14 @@ if (
   !hasLine(nodePatcher, nodeAuthPrepend.id, "obj-2", 0, 0) ||
   !hasLine(nodePatcher, "obj-268", nodeCancelOutput.id, 4, 0) ||
   !hasLine(nodePatcher, nodeCancelOutput.id, "obj-2", 0, 0) ||
-  nodeOutputRouteCords.length !== 4 ||
+  nodeOutputRouteCords.length !== 5 ||
   nodeOutputRouteCords.filter(
     ({ patchline }) => patchline.source[1] === 4,
   ).length !== 1 ||
-  nodeOutputRouteCords.some(({ patchline }) => patchline.source[1] === 5) ||
+  !hasLine(nodePatcher, nodeOutputRoute.id, "obj-account-output", 5, 0) ||
+  boxById(nodePatcher, "obj-account-output")?.text !== "routepass account" ||
+  !hasLine(nodePatcher, "obj-account-output", "obj-2", 0, 0) ||
+  (nodePatcher.lines || []).some(({ patchline }) => patchline.source[0] === "obj-account-output" && patchline.source[1] !== 0) ||
   nodeCancelInputCords.length !== 1 ||
   nodeCancelInputCords[0]?.patchline.source[0] !== "obj-268" ||
   nodeCancelInputCords[0]?.patchline.source[1] !== 4 ||
@@ -829,7 +836,7 @@ const deviceConnectionCordsAreExact = hasExactRelevantCords(
     [deviceCommandDefer?.id, 0, deviceJourney?.id, 1],
     [deviceJourney?.id, 1, deviceSharedOutputRoute?.id, 0],
     [deviceSharedOutputRoute?.id, 0, deviceStatusUnpack?.id, 0],
-    [deviceSharedOutputRoute?.id, 1, devicePreferences?.id, 0],
+    [deviceSharedOutputRoute?.id, 1, "obj-account-route", 0],
     [deviceStatusUnpack?.id, 0, deviceStatusSelect?.id, 0],
     [deviceStatusSelect?.id, 0, deviceStatusConnected?.id, 0],
     [deviceStatusSelect?.id, 1, deviceStatusConnected?.id, 0],
@@ -956,7 +963,18 @@ if (
   !hasLine(deviceJourney.patcher, deviceAuthRoute.id, deviceCancelMessage.id, 1, 0) ||
   !hasLine(deviceJourney.patcher, deviceCancelMessage.id, deviceStart.id, 0, 0) ||
   !deviceStatusRequestCordsAreExact ||
-  !hasLine(deviceJourney.patcher, deviceAuthRoute.id, "obj-22", 2, 0) ||
+  !hasLine(deviceJourney.patcher, deviceAuthRoute.id, "obj-account-route", 2, 0) ||
+  boxById(deviceJourney.patcher, "obj-account-route")?.text !== "route account" ||
+  !hasLine(deviceJourney.patcher, "obj-account-route", "obj-account-prepend", 0, 0) ||
+  boxById(deviceJourney.patcher, "obj-account-prepend")?.text !== "prepend account" ||
+  !hasLine(deviceJourney.patcher, "obj-account-prepend", deviceSharedOutput.id, 0, 0) ||
+  boxById(deviceJourney.patcher, "obj-account-panel") !== undefined ||
+  !hasLine(device.patcher, "obj-account-route", "obj-account-panel", 0, 0) ||
+  !hasLine(device.patcher, "obj-account-route", devicePreferences.id, 1, 0) ||
+  !hasLine(device.patcher, "obj-account-panel", "obj-account-command-defer", 0, 0) ||
+  !hasLine(device.patcher, "obj-account-command-defer", deviceJourney.id, 0, 1) ||
+  !hasLine(deviceJourney.patcher, "obj-account-route", "obj-22", 1, 0) ||
+  hasLine(deviceJourney.patcher, deviceAuthRoute.id, "obj-22") ||
   hasLine(deviceJourney.patcher, deviceNode.id, deviceSharedOutput.id) ||
   hasLine(deviceJourney.patcher, deviceNode.id, "obj-22") ||
   (deviceJourney.patcher.lines || []).filter(
@@ -990,11 +1008,13 @@ if (
   ) ||
   hasLine(device.patcher, deviceJourney.id, devicePreferences.id, 2, 0) ||
   hasLine(device.patcher, deviceJourney.id, devicePreferences.id, 2, 1) ||
-  rectanglesOverlap(devicePreferences?.presentation_rect, deviceConnect?.presentation_rect) ||
+  rectanglesOverlap(boxById(device.patcher, "obj-account-panel")?.presentation_rect, deviceConnect?.presentation_rect) ||
   deviceConnect?.text !== "Connect" ||
   deviceConnect?.texton !== "Connected" ||
   deviceConnect?.active !== 1 ||
   deviceConnect?.presentation !== 1 ||
+  deviceConnect?.hidden !== 0 ||
+  devicePreferences?.presentation !== 0 ||
   deviceConnect?.mode !== 1 ||
   deviceConnect?.parameter_enable !== 0 ||
   deviceConnectHit !== undefined ||
@@ -1002,7 +1022,7 @@ if (
   obsoleteConnectionParameter !== undefined ||
   obsoleteDeviceConnection !== undefined ||
   deviceConnectFilter !== undefined ||
-  deviceToggleMessage?.text !== "toggleConnection" ||
+  deviceToggleMessage?.text !== "connect" ||
   deviceCommandDefer?.text !== "deferlow" ||
   deviceSharedOutputRoute?.text !== "route auth" ||
   deviceSharedOutputRoute?.numinlets !== 2 ||
@@ -1016,7 +1036,7 @@ if (
   deviceStatusSelect?.numinlets !== 6 ||
   deviceStatusSelect?.numoutlets !== 6 ||
   deviceStatusConnected?.text !==
-    "text Connected, texton Connected, set 0, active 1" ||
+    "text Connected, texton Connected, set 0, active 0" ||
   deviceStatusPending?.text !==
     "text Connecting..., texton Connecting..., set 0, active 0" ||
   deviceStatusDisconnected?.text !==

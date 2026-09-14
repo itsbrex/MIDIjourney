@@ -1,0 +1,142 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { observeChat, upsertCall } from "../src/call-log.mjs";
+import {
+	captureReply,
+	copyDetails,
+	MAX_REPLY_CHARS,
+} from "../src/copy-details.mjs";
+import {
+	KEY_WIDTH,
+	pianoRoll,
+	ROLL_HEIGHT,
+	ROLL_WIDTH,
+} from "../src/piano-roll.mjs";
+import { normalizeChat } from "../src/session.mjs";
+
+const note = { pitch: 60, start_time: 0, duration: 1, velocity: 90 };
+const clip = {
+	title: "Phrase",
+	explanation: "Soft notes",
+	key: "C major",
+	duration: 8,
+	notes: [note],
+};
+
+test("piano roll plots time/duration horizontally and pitch vertically without changing notes", () => {
+	const notes = [note, { ...note, pitch: 72, start_time: 4, duration: 2 }];
+	const before = JSON.stringify(notes);
+	const roll = pianoRoll(notes, 8);
+	assert.equal(roll.notes[0].x, KEY_WIDTH);
+	assert.equal(roll.notes[1].x, KEY_WIDTH + (ROLL_WIDTH - KEY_WIDTH) / 2);
+	assert.equal(roll.notes[1].width, roll.notes[0].width * 2);
+	assert.ok(roll.notes[1].y < roll.notes[0].y);
+	assert.equal(JSON.stringify(notes), before);
+});
+
+test("piano roll handles single-pitch, full MIDI range and dense output with bounded geometry", () => {
+	for (const notes of [
+		[note],
+		[
+			{ ...note, pitch: 0 },
+			{ ...note, pitch: 127 },
+		],
+		Array(2048).fill(note),
+	]) {
+		const roll = pianoRoll(notes, 4096);
+		assert.equal(roll.notes.length, notes.length);
+		assert.ok(roll.grid.length <= 16);
+		assert.ok(roll.low >= 0 && roll.high <= 127);
+		for (const item of roll.notes) {
+			assert.ok(item.width > 0 && item.height > 0);
+			assert.ok(item.x >= KEY_WIDTH && item.x + item.width <= ROLL_WIDTH);
+			assert.ok(item.y >= 0 && item.y + item.height <= ROLL_HEIGHT);
+		}
+	}
+	assert.equal(pianoRoll([], 8), null);
+	assert.equal(pianoRoll([{ ...note, pitch: -1 }], 8), null);
+	assert.equal(pianoRoll([{ ...note, duration: Infinity }], 8), null);
+});
+
+test("copy retains the exact model message and all notes, with model/usage but no request or auth fields", async () => {
+	const midi = { ...clip, notes: Array(180).fill(note) };
+	const raw = `\n${JSON.stringify(midi, null, 4)}\n`;
+	const response = {
+		model: "served-model",
+		choices: [{ message: { content: raw }, finish_reason: "stop" }],
+		usage: { prompt_tokens: 12, completion_tokens: 34, total_tokens: 46 },
+		apiKey: "not-for-copy",
+	};
+	let calls = [];
+	const client = observeChat(
+		{ chat: async () => response },
+		(entry) => {
+			calls = upsertCall(calls, entry);
+		},
+		() => 1,
+	);
+	assert.equal(
+		await client.chat([{ content: "not-for-copy-prompt" }], {
+			apiKey: "not-for-copy",
+		}),
+		response,
+	);
+	const copied = copyDetails({ calls, result: midi });
+	const data = JSON.parse(copied);
+	assert.equal(data.calls[0].response.text, raw);
+	assert.equal(data.calls[0].response.status, "original");
+	assert.equal(data.calls[0].reportedModel, "served-model");
+	assert.equal(data.calls[0].tokens.total, 46);
+	assert.equal(data.midi.notes.length, 180);
+	assert.doesNotMatch(copied, /not-for-copy|apiKey/);
+	const saved = normalizeChat({
+		turns: [{ id: "x", prompt: "x", result: midi, calls }],
+	});
+	assert.equal(saved.turns[0].calls[0].reply.text, raw);
+});
+
+test("oversized replies and older replies are identified, not silently truncated or reconstructed", () => {
+	assert.equal(captureReply("a".repeat(MAX_REPLY_CHARS + 1)).text, null);
+	const copied = JSON.parse(
+		copyDetails({ calls: [{ usage: {} }], result: clip }),
+	);
+	assert.equal(copied.calls[0].response.text, null);
+	assert.match(copied.calls[0].response.status, /older reply/);
+	assert.equal(
+		captureReply("\nnot valid MIDI JSON\n").text,
+		"\nnot valid MIDI JSON\n",
+	);
+});
+
+test("cancelled requests cannot capture a late reply and observer errors do not break generation", async () => {
+	let resolve;
+	let calls = [];
+	const signal = new AbortController();
+	const client = observeChat(
+		{
+			chat: () =>
+				new Promise((done) => {
+					resolve = done;
+				}),
+		},
+		(entry) => {
+			calls = upsertCall(calls, entry);
+		},
+		() => 1,
+	);
+	const pending = client.chat([], { signal: signal.signal });
+	signal.abort();
+	resolve({ choices: [{ message: { content: JSON.stringify(clip) } }] });
+	await pending;
+	assert.equal(calls[0].status, "Canceled");
+	assert.equal(calls[0].reply, undefined);
+	const original = { choices: [{ message: { content: "x" } }] };
+	const observed = observeChat(
+		{ chat: async () => original },
+		() => {
+			throw new Error("diagnostic only");
+		},
+		() => 1,
+	);
+	assert.equal(await observed.chat([], {}), original);
+});

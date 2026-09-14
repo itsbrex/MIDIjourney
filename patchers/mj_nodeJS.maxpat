@@ -49,8 +49,7 @@
 					"text" : "route error"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-auth-prepend",
 					"maxclass" : "newobj",
@@ -61,8 +60,7 @@
 					"text" : "prepend auth"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-21",
 					"maxclass" : "newobj",
@@ -73,8 +71,7 @@
 					"text" : "route terminated"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-14",
 					"maxclass" : "newobj",
@@ -84,8 +81,7 @@
 					"text" : "dict.print"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-8",
 					"maxclass" : "newobj",
@@ -96,8 +92,7 @@
 					"text" : "route error"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-39",
 					"maxclass" : "newobj",
@@ -282,8 +277,7 @@
 					"text" : "p errorToDisplay"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-9",
 					"maxclass" : "message",
@@ -294,8 +288,7 @@
 					"text" : "error"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-6",
 					"maxclass" : "newobj",
@@ -306,8 +299,7 @@
 					"text" : "t b l l"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-77",
 					"maxclass" : "newobj",
@@ -318,8 +310,7 @@
 					"text" : "deferlow"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-1",
 					"maxclass" : "button",
@@ -331,8 +322,7 @@
 					"patching_rect" : [ 280.0, 489.0, 24.0, 24.0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"blinkcolor" : [ 0.985511541366577, 0.264326483011246, 0.295126706361771, 0.0 ],
 					"id" : "obj-17",
@@ -345,8 +335,7 @@
 					"patching_rect" : [ 218.0, 263.0, 24.0, 24.0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-13",
 					"maxclass" : "newobj",
@@ -357,8 +346,7 @@
 					"text" : "mj_route cancel"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-3",
 					"maxclass" : "newobj",
@@ -369,8 +357,7 @@
 					"text" : "mj_routeDict"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"comment" : "",
 					"id" : "obj-2",
@@ -381,8 +368,7 @@
 					"patching_rect" : [ 85.0, 428.0, 30.0, 30.0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-31",
 					"maxclass" : "newobj",
@@ -399,8 +385,7 @@
 					"text" : "dict"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-27",
 					"maxclass" : "newobj",
@@ -417,8 +402,7 @@
 					"text" : "dict"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-16",
 					"maxclass" : "newobj",
@@ -429,8 +413,7 @@
 					"text" : "prepend prompt"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-11",
 					"maxclass" : "newobj",
@@ -440,8 +423,7 @@
 					"text" : "print \"ERROR - NODE\""
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-268",
 					"maxclass" : "newobj",
@@ -452,8 +434,7 @@
 					"text" : "route result processing error auth cancel"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"hidden" : 1,
 					"id" : "obj-cancel-output",
@@ -465,8 +446,7 @@
 					"text" : "cancel"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"color" : [ 0.992156862745098, 0.501960784313725, 0.031372549019608, 1.0 ],
 					"id" : "obj-273",
@@ -486,8 +466,7 @@
 					"text" : "node.script midiJourney.release.js @watch 0"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-command-route",
 					"maxclass" : "newobj",
@@ -498,8 +477,7 @@
 					"text" : "routepass connect toggleConnection disconnect authStatus"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-command-connect",
 					"maxclass" : "message",
@@ -510,8 +488,7 @@
 					"text" : "connect"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-command-toggle",
 					"maxclass" : "message",
@@ -522,8 +499,7 @@
 					"text" : "toggleConnection"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-command-disconnect",
 					"maxclass" : "message",
@@ -534,8 +510,7 @@
 					"text" : "disconnect"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-command-status",
 					"maxclass" : "message",
@@ -546,8 +521,7 @@
 					"text" : "authStatus"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-command-defer",
 					"maxclass" : "newobj",
@@ -558,8 +532,7 @@
 					"text" : "deferlow"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-loadend-route",
 					"maxclass" : "newobj",
@@ -570,8 +543,7 @@
 					"text" : "route loadend"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-loadend-success",
 					"maxclass" : "newobj",
@@ -582,8 +554,7 @@
 					"text" : "sel success"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"id" : "obj-pollinations-loadend-delay",
 					"maxclass" : "newobj",
@@ -594,8 +565,7 @@
 					"text" : "delay 250"
 				}
 
-			}
-, 			{
+			}, 			{
 				"box" : 				{
 					"comment" : "",
 					"id" : "obj-36",
@@ -607,6 +577,43 @@
 					"patching_rect" : [ 39.0, 209.0, 30.0, 30.0 ]
 				}
 
+			}, 			{
+				"box": {
+					"id": "obj-account-commands",
+					"maxclass": "newobj",
+					"text": "routepass accountRefresh accountDashboard",
+					"numinlets": 3,
+					"numoutlets": 3,
+					"outlettype": [
+						"",
+						"",
+						""
+					],
+					"patching_rect": [
+						20,
+						1097,
+						280,
+						22
+					]
+				}
+			}, 			{
+				"box": {
+					"id": "obj-account-output",
+					"maxclass": "newobj",
+					"text": "routepass account",
+					"numinlets": 2,
+					"numoutlets": 2,
+					"outlettype": [
+						"",
+						""
+					],
+					"patching_rect": [
+						20,
+						1124,
+						280,
+						22
+					]
+				}
 			}
  ],
 		"lines" : [ 			{
@@ -615,286 +622,306 @@
 					"source" : [ "obj-1", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-273", 0 ],
 					"source" : [ "obj-13", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-3", 0 ],
 					"source" : [ "obj-13", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-273", 0 ],
 					"source" : [ "obj-16", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-31", 0 ],
 					"source" : [ "obj-17", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-22", 0 ],
 					"source" : [ "obj-21", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-14", 0 ],
 					"source" : [ "obj-22", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-6", 0 ],
 					"source" : [ "obj-268", 2 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-auth-prepend", 0 ],
 					"source" : [ "obj-268", 3 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-cancel-output", 0 ],
 					"source" : [ "obj-268", 4 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
 					"source" : [ "obj-cancel-output", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
 					"source" : [ "obj-auth-prepend", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-77", 0 ],
 					"source" : [ "obj-268", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-3", 1 ],
 					"source" : [ "obj-27", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-21", 0 ],
 					"source" : [ "obj-273", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-loadend-route", 0 ],
 					"source" : [ "obj-273", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-loadend-success", 0 ],
 					"source" : [ "obj-pollinations-loadend-route", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-loadend-delay", 0 ],
 					"source" : [ "obj-pollinations-loadend-success", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-status", 0 ],
 					"source" : [ "obj-pollinations-loadend-delay", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-268", 0 ],
 					"source" : [ "obj-273", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-2", 0 ],
 					"source" : [ "obj-3", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-31", 0 ],
 					"source" : [ "obj-3", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-16", 0 ],
 					"source" : [ "obj-31", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-route", 0 ],
 					"source" : [ "obj-36", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-connect", 0 ],
 					"source" : [ "obj-pollinations-command-route", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-273", 0 ],
 					"source" : [ "obj-pollinations-command-defer", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-toggle", 0 ],
 					"source" : [ "obj-pollinations-command-route", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-disconnect", 0 ],
 					"source" : [ "obj-pollinations-command-route", 2 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-status", 0 ],
 					"source" : [ "obj-pollinations-command-route", 3 ]
 				}
 
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-8", 0 ],
-					"source" : [ "obj-pollinations-command-route", 4 ]
-				}
-
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-defer", 0 ],
 					"source" : [ "obj-pollinations-command-connect", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-defer", 0 ],
 					"source" : [ "obj-pollinations-command-toggle", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-defer", 0 ],
 					"source" : [ "obj-pollinations-command-disconnect", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-pollinations-command-defer", 0 ],
 					"source" : [ "obj-pollinations-command-status", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-3", 1 ],
 					"source" : [ "obj-39", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-11", 0 ],
 					"source" : [ "obj-6", 2 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-39", 0 ],
 					"source" : [ "obj-6", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-9", 0 ],
 					"source" : [ "obj-6", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-27", 0 ],
 					"source" : [ "obj-77", 0 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-13", 0 ],
 					"source" : [ "obj-8", 1 ]
 				}
 
-			}
-, 			{
+			}, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-3", 1 ],
 					"source" : [ "obj-9", 0 ]
 				}
 
+			}, 			{
+				"patchline": {
+					"source": [
+						"obj-pollinations-command-route",
+						4
+					],
+					"destination": [
+						"obj-account-commands",
+						0
+					]
+				}
+			}, 			{
+				"patchline": {
+					"source": [
+						"obj-account-commands",
+						0
+					],
+					"destination": [
+						"obj-pollinations-command-defer",
+						0
+					]
+				}
+			}, 			{
+				"patchline": {
+					"source": [
+						"obj-account-commands",
+						1
+					],
+					"destination": [
+						"obj-pollinations-command-defer",
+						0
+					]
+				}
+			}, 			{
+				"patchline": {
+					"source": [
+						"obj-account-commands",
+						2
+					],
+					"destination": [
+						"obj-8",
+						0
+					]
+				}
+			}, 			{
+				"patchline": {
+					"source": [
+						"obj-268",
+						5
+					],
+					"destination": [
+						"obj-account-output",
+						0
+					]
+				}
+			}, 			{
+				"patchline": {
+					"source": [
+						"obj-account-output",
+						0
+					],
+					"destination": [
+						"obj-2",
+						0
+					]
+				}
 			}
  ],
 		"saved_attribute_attributes" : 		{

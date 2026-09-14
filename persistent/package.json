@@ -1,0 +1,11 @@
+{
+  "name": "midijourney-persistent-preview",
+  "private": true,
+  "version": "0.1.0",
+  "pollinations": { "theme": "blue" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs"
+  }
+}

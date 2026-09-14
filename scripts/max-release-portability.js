@@ -4,6 +4,7 @@ const zlib = require("zlib");
 
 const AMPF_HEADER_LENGTH = 32;
 const FROZEN_METADATA_HEADER = Buffer.from("mx@c", "ascii");
+const FROZEN_METADATA_HEADER_LENGTH = 16;
 const PATCH_CHUNK = Buffer.from("ptch", "ascii");
 const AUDIO_EFFECT_TYPE = Buffer.from("aaaa", "ascii");
 const METADATA_CHUNK = Buffer.from("meta", "ascii");
@@ -75,7 +76,9 @@ function findJsonDocumentEnd(buffer, start, limit) {
 function parseFrozenJsonDocuments(buffer, zipOffset) {
   const documents = [];
   const ranges = [];
-  let offset = AMPF_HEADER_LENGTH + FROZEN_METADATA_HEADER.length;
+  // Skip the whole binary header, not just its four-byte magic. The encoded
+  // directory offset can contain 0x7b ("{") and is not JSON metadata.
+  let offset = AMPF_HEADER_LENGTH + FROZEN_METADATA_HEADER_LENGTH;
 
   while (offset < zipOffset) {
     while (offset < zipOffset && buffer[offset] !== 0x7b) offset += 1;

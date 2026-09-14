@@ -1553,7 +1553,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"parameter_enable" : 1,
+					"parameter_enable" : 0,
 					"patching_rect" : [ 310.0, 310.0, 55.0, 25.0 ],
 					"presentation" : 1,
 					"presentation_rect" : [ 10.0, 10.0, 70.0, 70.0 ],

@@ -9,6 +9,8 @@ const { PollinationsAuth } = require("./pollinationsAuth.js");
 const { PollinationsMidiClient } = require("./pollinationsClient.js");
 const { stripSensitiveFields } = require("./sanitize.js");
 const { getColorCodeForScale } = require("./scaleColors.js");
+const { AccountPanel } = require("./accountPanel.js");
+let accountPanel;
 
 function safeLog(event, metadata = {}) {
   const safeMetadata = Object.fromEntries(
@@ -25,11 +27,16 @@ function outputAuthState(state) {
   // lifetime can end before a hot-swapped root patcher consumes it.
   const delivery = outletToMax("auth", state.status);
   safeLog("auth_state", { status: state.status });
+  accountPanel?.state(state);
   return delivery;
 }
 
 const auth = new PollinationsAuth({
   onState: outputAuthState,
+});
+accountPanel = new AccountPanel({
+  auth,
+  send: (...message) => outletToMax("account", ...message),
 });
 const midiClient = new PollinationsMidiClient({
   auth,
@@ -75,6 +82,9 @@ async function handlePrompt(input) {
     if (error.code !== "CANCELED") {
       errorToMax(error.code || "GENERATION_ERROR", error.message);
     }
+  } finally {
+    // Refresh after a request so the visible allowance tracks actual spending.
+    void accountPanel.refresh();
   }
 }
 
@@ -122,6 +132,17 @@ addHandlers({
   connect: handleConnect,
   toggleConnection: handleToggleConnection,
   disconnect: handleDisconnect,
+  accountRefresh: async () => {
+    await ready;
+    await accountPanel.refresh();
+  },
+  accountDashboard: async () => {
+    try {
+      await accountPanel.openDashboard();
+    } catch (error) {
+      if (error.code !== "CANCELED") errorToMax(error.code || "ACCOUNT_ACTION_ERROR", "Could not open the Pollinations dashboard. Please try again.");
+    }
+  },
   authStatus: async () => {
     await ready;
     await outputAuthState(auth.getState());
