@@ -21,7 +21,12 @@ export type CallEntry = {
 		cached: number | null;
 		reasoning: number | null;
 	};
-	error?: { code: string | null; httpStatus: number | null };
+	error?: {
+		code: string | null;
+		httpStatus: number | null;
+		requestId?: string | null;
+		message?: string;
+	};
 	output?: {
 		validation: string;
 		title?: string | null;

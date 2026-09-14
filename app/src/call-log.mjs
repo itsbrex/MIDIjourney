@@ -3,6 +3,7 @@ import {
 	redactSecrets,
 } from "../.generated/midi-core.mjs";
 import { captureReply } from "./copy-details.mjs";
+import { providerErrorDetails } from "./provider-error.mjs";
 
 export const MAX_CALLS = 30;
 const MAX_NOTE_PREVIEW = 128;
@@ -106,12 +107,7 @@ export function observeChat(client, onEntry, nextId) {
 						error?.name === "AbortError" || error?.code === "CANCELED"
 							? "Canceled"
 							: "Failed",
-					error: {
-						code: safeText(error?.code),
-						httpStatus: count(error?.status),
-						// SDK error messages can include response bodies. Keep only a
-						// status/code, not an unbounded provider error or credential URL.
-					},
+					error: providerErrorDetails(error, client, messages),
 				});
 				throw error;
 			} finally {

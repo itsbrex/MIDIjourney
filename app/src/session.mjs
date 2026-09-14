@@ -7,6 +7,7 @@ import {
 import { captureReply } from "./copy-details.mjs";
 import { createClip, isJweb } from "./jweb.mjs";
 import { MAX_SOURCE_CLIPS, normalizeMidiInput } from "./midi-input.mjs";
+import { providerErrorDetails } from "./provider-error.mjs";
 export const SESSION_KEY = "midijourney:persistent-chat:v1";
 export const LEGACY_KEY = "midijourney:persistent-workspace:v1";
 const MAX_BYTES = 3_000_000;
@@ -47,10 +48,12 @@ function normalizeCall(call) {
 		),
 		...(call?.error
 			? {
-					error: {
-						code: text(call.error.code, 80) || null,
-						httpStatus: count(call.error.httpStatus),
-					},
+					error: providerErrorDetails({
+						code: call.error.code,
+						status: count(call.error.httpStatus),
+						requestId: call.error.requestId,
+						message: call.error.message,
+					}),
 				}
 			: {}),
 		...(call?.output
