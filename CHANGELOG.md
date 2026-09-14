@@ -2,42 +2,16 @@
 
 ## Unreleased — V3
 
-### Added
+- Replaced the all-Max editor with a compact, resizable persistent web conversation using the shared Pollinations UI and SDK.
+- Added shared light/dark mode and account menu, system-browser login handoff, balance and dashboard access.
+- Added chat context, New chat, automatic single-clip input feedback, piano-roll previews, provider-reported model and Response copy with token/MIDI details.
+- Kept original MIDI sanitization and request semantics; added regression fixtures for parity.
+- Creates new clips without overwriting existing clips; validates MIDI and checks native note read-back.
+- Added explicit macOS clipboard controls for embedded-host limitations.
+- Simplified the Main-track device to title, Open, status and Retry on error; retained stereo pass-through.
+- Consolidated production source into app/core/device with one root lockfile/build.
+- Embedded web assets and fonts in the Node runtime; added isolated native-freeze staging and exact-byte verification.
+- Preserved old UI and Ableton Extensions experiments on codex/archive-ui-experiments. The experimental dev-mj2 branch is unchanged.
+- Removed old History drawer, model selector and redundant Max UI from the active product.
 
-- Response-reported model attribution appended to each new explanation and its display history, without changing generation settings or model context.
-- Pollinations BYOP browser authorization using the official Pollinations SDK device-code flow, with app attribution when Pollinations recognizes MIDIjourney's configured publishable App Key and a functional SDK-device fallback when it does not.
-- Native macOS Keychain and Windows DPAPI credential storage.
-- Native account section embedded in Live's device panel: **Connect**, a balance display, and **↗** with the hover label “Open Pollinations dashboard.” Connected is a passive status, not a disconnect toggle. No profile image, name, model dropdown, or extra account menu.
-- Deferred account-state refresh when the external panel reloads, without restarting authorization or triggering a connection action.
-- Corrected native control bounds and layering so device account controls and the editor's History toggle remain clickable.
-- Strict JSON-schema response requests and complete MIDI validation.
-- Tests for authorization, history, provider requests, MIDI boundaries, and key colors.
-- Explicit Live 12 / Max 9 release metadata and compatibility checks.
-- Recursive credential-field stripping before requests or results enter creative history.
-- Per-device history persistence inside the Live Set, bounded to the 100 most recent messages.
-- A separate editable source container plus staging and validation for a self-contained frozen AMXD.
-
-### Changed
-
-- Preserved prompt history across Set save/reopen while separating the visible archive from optional model context.
-- Restored the floating Create editor's full-width MIDI Prompt row and moved account controls to the bottom device panel. The editor retains its History toggle, saved prompt archive, and existing create/explanation controls.
-- Replaced the legacy OpenAI request client and free-form YAML parsing.
-- Pinned the runtime to one zero-dependency provider SDK.
-- Made release builds deterministic instead of installing packages at runtime.
-- Isolated Max release staging from repository search paths so freezes include only the compiled runtime and required device assets.
-- Corrected MIDI boundary handling, duration calculation, enharmonic key colors, and error reporting.
-- Corrected Live API pitch spans so note 127 is imported and cleared, and supplied the `mute` field expected by Live's extended note dictionaries.
-- Kept MIDIjourney as a transparent Max Audio Effect on Live's Main track while targeting MIDI clips through the Live Object Model.
-- Limited transient generation failures (HTTP 408, 429, and 5xx) to two total attempts with an abortable delay; cancellation, authorization, balance, and validation failures are not retried.
-- Made connection and generation cancellation operation-safe so late provider results cannot restore stale authorization or create a clip after disconnect.
-- Reworked Max command routing and deferred UI actions to prevent recursive feedback and stack overflow on load or connection clicks.
-
-### Removed
-
-- The experimental model dropdown, stored selection, request override, and selector-specific model-catalog lookup. Existing configured/default generation behavior is preserved.
-- Personal API-key entry in the Max UI.
-- The obsolete Pollinations connection modal and its feedback-prone routing.
-- Full prompt and provider-response console logging.
-- Obsolete CSV, code, and mini-notation engines.
-- Temporary response files and runtime dependency installation.
-- The legacy Max-side package installer and development files from the frozen device.
+The V3 tag and downloadable frozen device remain gated on native acceptance.

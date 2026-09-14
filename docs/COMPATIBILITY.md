@@ -1,23 +1,30 @@
 # Compatibility
 
-MIDIjourney V3 targets current Ableton Live 12 installations.
+## V3 target
 
-| Environment | Status | Notes |
+macOS, Ableton Live 12 with Max for Live, Max 9.1.5 or newer. Use one MIDI Journey instance on Main. The connector passes stereo audio through unchanged.
+
+The shared UI uses a modern embedded browser. Older bundled Max versions may not render it correctly. A tested minimum Live/Max combination will be recorded after the consolidated frozen artifact passes native acceptance.
+
+## Evidence, not assumptions
+
+| Environment | Observation | Release proof? |
 | --- | --- | --- |
-| Live 12.4.5 / Max 9.0.3 / macOS Apple silicon | Release-candidate smoke passes | Browser authorization and a real Pollinations request producing a nonempty Session MIDI clip pass in Live. Candidate H was frozen in the Live-linked Max editor, survived a cold-start Set reopen without a stack overflow, and the promoted AMXD loads independently after external staging is removed. Node for Max 20.6.1. |
-| Node 20.17.0 and 22.21.1 / macOS Apple silicon | Full automated layer passes | Syntax, 88 application tests, release portability, frozen-AMXD checks, and static patcher checks pass. Full release tooling requires Node 20.12 or newer because the pinned compiler uses `crypto.hash`. |
-| Node 18.18.0 / macOS Apple silicon | Application tests pass | Syntax, all 88 application tests, and portability checks pass. The pinned release compiler cannot load because Node 18 does not provide `crypto.hash`, so Node 18 is not supported for release builds or full artifact verification. |
-| Live 12 / Windows 11 | Pending | BYOP, DPAPI, clip creation, reopening, and multi-instance tests required. |
-| Live 11 and earlier | Unsupported by V3 | Keep an older device build if legacy Live support is required. |
-| Push 3 Standalone | Unsupported | Browser authorization and the current desktop credential stores are not designed for Push Standalone. |
+| Live 12.4.15b2 / bundled Max 9.1.5 | Consolidated source UI renders; browser login returns a visible account and balance | No: final frozen build still needs acceptance |
+| Live 12.4.15b2 / standalone Max 9.0.3 | Consolidated editor was blank | Unsupported by this candidate |
+| Live 12.4.5 / Max 9.0.3 | Earlier all-Max UI was tested | No: different UI/runtime |
+| Node 22.21.1, macOS | Clean install/build and 127 tests pass without local configuration or SDK downloads | Source checks only |
+| Windows | Some inherited launch paths exist | Unsupported for initial V3; clipboard implementation is macOS-only |
 
-Declared minimum versions in the AMXD:
+## Deliberate limits
 
-- Ableton Live 12.0.0
-- Max 9.0.0
+- Session View output, MIDI tracks only.
+- Current single MIDI clip is input; not the whole multi-selection.
+- Existing clips remain intact. Creation chooses an available empty slot.
+- One local server on 127.0.0.1:5178, accessed as localhost.
+- The browser preview has no Live mutation bridge.
+- No Extensions SDK installation or beta-only Extensions feature is required by the architecture.
+- Chat persists locally in the embedded browser, not inside the Live Set.
+- Native keyboard shortcuts can be intercepted by Live/Max; explicit prompt Copy/Paste and Response copy controls are provided.
 
-V3 remains a transparent Max Audio Effect intended for Live's Main track. It creates and edits clips on MIDI tracks through the Live Object Model; it is not packaged as an instrument or MIDI Effect.
-
-The clip paths and functions used by V3 were checked against Cycling '74's Live Object Model for Live 12.3.5. This includes Session `ClipSlot.create_clip`, Arrangement and Session `Clip` objects, `get_all_notes_extended`, `add_new_notes`, `remove_notes_extended`, and the `detail_clip` / `highlighted_clip_slot` view paths. The note-range messages use a span of 128 so pitches 0 through 127 are both covered.
-
-Before an operating system is claimed as supported, the device must pass the full checklist in [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) on that target operating system.
+Generation supports at most 2,048 notes and 4,096 beats per output. Input sanitization retains the original rules; invalid provider output is rejected, not silently truncated into a successful clip.

@@ -1,7 +1,0 @@
-{
-  "name": "MIDIjourney Preview",
-  "author": "MIDIjourney",
-  "entry": "dist/extension.cjs",
-  "version": "0.1.0",
-  "minimumApiVersion": "1.0.0"
-}

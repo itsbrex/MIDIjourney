@@ -1,45 +1,37 @@
 # Troubleshooting
 
-## Pollinations does not open in the browser
+## Window does not open
 
-In the source preview, click **Connect** in Live's bottom device panel to start authorization. **↗** beside the balance opens the Pollinations dashboard instead; it does not authorize MIDIjourney. Check that the default browser can open HTTPS links and that a firewall is not blocking Pollinations. There is no account modal or account section inside the floating Create editor.
+Load one device on Main and press Open. If the panel says Connection unavailable, close other MIDI Journey instances and stop the browser development server, then press Retry. Port 5178 must be free. If Max reports a missing script, you may have loaded an editable source file without its dependencies rather than the frozen release.
 
-## MIDIjourney asks you to reconnect
+If the editor is blank but the server is running, check Live Settings → File & Folder → Max Application. Select the bundled Max (9.1.5 or newer), then restart Live. A manually selected older standalone Max can take precedence over the newer copy included with Live.
 
-The saved authorization may have expired or been revoked. A temporary network outage does not erase a valid saved connection. After rejected authorization is cleared, use **Connect** in the bottom device panel to reconnect. Dashboard sign-in alone does not grant device authorization. Do not change the app key to refresh the UI.
+## Cannot connect
 
-## A model is unavailable
+Use the account menu inside MIDI Journey. Sign-in happens in the system browser, not inside the embedded passkey window. Confirm the intended browser account and return to Live. Keep Live open throughout. An expired handoff can be canceled and started again.
 
-The model selector and its request override have been removed. MIDIjourney uses its existing configured/default model behavior and does not switch models on an error. Check the Pollinations provider configuration if that model is unavailable; invalid MIDI is still rejected before reaching Live.
+Do not rotate the app key to troubleshoot ordinary login problems. Rebuilding does not clear or replace your personal session.
 
-## Insufficient Pollen or rate limit
+## No MIDI input badge
 
-Open your Pollinations account to review usage or balance. MIDIjourney makes at most two total attempts for transient timeout, rate-limit, and provider failures. If the bounded retry also fails, wait briefly and try again. It does not retry balance, authorization, cancellation, or invalid-response failures automatically.
+Select a MIDI clip in Live. An empty slot supplies a destination but no notes. Audio clips are not MIDI input. Selection follows the current single clip; automatic multi-selection is not part of V3. The source is read afresh when you send.
 
-## No clip is created
+## Create clip is disabled
 
-Keep MIDIjourney on Live's **Main** track. Open its floating editor, then select either an existing MIDI clip or an empty Session slot on a MIDI track before creating. Audio clips cannot receive MIDI notes. Make sure the target still exists when generation finishes.
+Choose an empty Session slot on a MIDI track. Selecting an existing MIDI clip chooses the next available empty slot on that track; it never overwrites the clip. If the track has no available slot, add an empty scene in Live or choose another destination.
 
-## A generated response is rejected
+## A write warning appears
 
-V3 rejects incomplete or out-of-range MIDI before it reaches Live. Try the request again or make the prompt more explicit about duration and musical content. Rejected provider output does not partially overwrite the selected clip.
+Do not click repeatedly. A timeout or read-back warning can mean Live created something but the connector could not confirm its exact contents. Inspect the destination and use Live Undo if appropriate. Writes are not automatically retried.
 
-## Canceling or disconnecting during generation
+## Copy or paste seems unreliable
 
-Canceling stops the active request and any pending retry. Closing the device also cancels generation without erasing saved authorization. Removing the disconnect icon does not disconnect an existing session.
+Live/Max may intercept native keyboard shortcuts. Use the explicit Copy/Paste controls beside the prompt. Response copies the full diagnostic export and MIDI. Neither operation logs clipboard content. Oversized content is rejected rather than truncated.
 
-## The dashboard arrow is visible but cannot be clicked
+## Old design or stale code
 
-Use the updated source/device. Account controls now live in the bottom device panel, outside the floating prompt editor. Create, Connect, and the balance row have separate hit areas; the layout generator and regression tests enforce their bounds. The panel requests current account state when reloaded. This issue does not require changing the API key.
+Only the frozen V3 release is portable. A source candidate must be reloaded after a bridge/runtime change; refreshing a web page alone does not reload Max JavaScript. Remove the old device first so you do not run two servers. Do not edit two copies simultaneously in Max.
 
-## Max changes appear after closing the editor
+## Report a problem
 
-The device instance loaded in Live and its source files are separate states. Editing an external `.maxpat` can change that file independently of saving the parent `.amxd`. Check the actual file changes before assuming a cache problem. Close Max editing before reloading the intended source device through Live's hot-swap control; do not clear authorization or delete caches to refresh the UI.
-
-## History changes the result unexpectedly
-
-Turn **History** off to keep the visible archive without sending it as context for the next request. Use **Clear** only when you want to remove the archive as well.
-
-## Reporting a problem
-
-Include the Ableton Live version, bundled Max version, operating system, what you selected in Live, and the safe error message shown by MIDIjourney. Do not include authorization tokens, API keys, or private prompt/history content.
+Include Live, Max and macOS versions, the device SHA-256/release tag, what you clicked and what happened. If useful, use Response to copy one generation's details. Review the export before sharing musical material; never share login tokens or OAuth callback links.

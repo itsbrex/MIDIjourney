@@ -1,79 +1,54 @@
-# V3 release checklist
+# V3 release gate
 
-The checked packaging/Live smoke results below describe the previously promoted candidate H. The balance-and-dashboard source update must pass a fresh Live-hosted smoke, native freeze, and strict promotion before those results apply to the new UI.
+Status: **source consolidation verified locally; native release acceptance pending. No finalized V3 release yet.**
 
-## Build and dependencies
+## Product scope
 
-- [ ] `npm ci --ignore-scripts` succeeds from a clean checkout.
-- [x] `npm run verify` passes on tested Node 20.17 and 22.21; all 88 application tests also pass on Node 18.18, while the pinned release compiler requires Node 20.12's `crypto.hash` API.
-- [x] `npm audit --omit=dev` reports no known vulnerabilities.
-- [x] The Pollinations SDK version matches the lockfile exactly.
-- [x] The external staging manifest matches every current production JavaScript/build/lock/config input, source dependency, staged asset, and `.maxproj`.
-- [x] Strict candidate verification recompiles the Node entry with the pinned `@vercel/ncc` and confirms the ignored release bundle is current.
-- [x] The frozen AMXD includes the exact compiled runtime and every required device dependency.
-- [x] The active frozen Max patcher documents match the staged graph after documented Max normalization.
-- [x] Every bounded embedded ZIP archive passes local-header, central-directory, footer, CRC, decompression, entry-count, and expanded-size validation.
-- [x] Max's native dependency directory has the exact JSON/folder records, ordering, flags, sizes, and offsets for the frozen documents and ZIP archives.
-- [x] The device runs after its external staging folder is removed, with no repository or global npm dependencies.
-- [x] The external candidate passes `npm run verify:max-release-candidate -- <candidate> <staging-project>` before it replaces the tracked device.
-- [x] `npm run finalize:max-release -- <candidate> <staging-project>` acquires its sibling lock, promotes the verified snapshot with file-level atomic replacement and durability syncs, rechecks installed bytes, records the checksum, and is followed immediately by `npm run verify` (the two files are not crash-atomic as a pair).
-- [ ] Recovery is rehearsed: after confirming no finalizer is running, remove only a stale sibling finalizer lock and rerun the exact same candidate-plus-project command; never use checksum-only mode to recover a promotion.
+macOS; one device on Main; persistent Pollinations web UI; single-selected-clip input; new-clip creation. No automatic multi-selection, replacement of existing clips, model selector, Windows claim or Extensions SDK.
 
-## Security and privacy
+## Automated and packaging checks
 
-- [x] The release contains the approved publishable Pollinations App Key and no secret keys or user tokens.
-- [ ] Pollinations recognizes the configured publishable App Key, and a release login is verified as attributed to MIDIjourney for app earnings.
-- [x] A definitively unregistered App Key falls back to the SDK device client without changing the configured key or blocking login.
-- [x] `js/config.release.js` was generated only after scoped credential approval and remains ignored/uncommitted.
-- [ ] Authorization tokens never appear in Max dictionaries, Live Sets, history, logs, crash output, or the AMXD.
-- [ ] Connect, reconnect, cancellation, authorization expiry, and Disconnect are verified.
-- [ ] Disconnect removes the operating-system credential entry.
-- [x] Temporary network failures do not delete valid authorization.
-- [x] Automated tests cover coalesced Connect requests, cancellation, stale completions, offline credential preservation, bounded transient retries, and retry cancellation.
-- [x] Prompt and response bodies are absent from release logging.
+- [x] Clean-checkout `npm ci && npm run verify` succeeds without sibling repos or SDK downloads.
+- [ ] CI passes on the production source commit.
+- [x] Vendored UI checksum, licenses and source provenance reviewed.
+- [x] Staged repository excludes personal sessions, credentials, the local plan and downloaded SDK. Device staging excludes test UI; tests remain in the source repository.
+- [x] `npm run release:prepare` creates an isolated project using the unchanged authorized app key.
+- [ ] Max, launched from Live's Edit in Max, performs Freeze Device and Save.
+- [ ] `npm run release:verify -- <candidate>` passes against the same current build.
+- [ ] Candidate SHA-256 and test environment recorded below.
 
-## MIDI and history
+## Native acceptance — the exact frozen bytes
 
-- [x] New clips and variations are valid at MIDI pitch 0 and 127 and velocity 1 and 127.
-- [x] Invalid or partial provider output never reaches Live.
-- [x] Clip duration covers every note.
-- [x] History remains visible and clearable.
-- [x] History is only sent as model context when enabled.
-- [ ] Saving and reopening the Live Set restores history without starting a request or creating a clip.
-- [ ] Clearing history removes both display and context entries; saving and reopening afterward remains empty.
-- [ ] Clearing history during generation cannot repopulate history or create a stale clip.
-- [x] Only the newest 100 history messages persist.
-- [x] Large input clips and long histories remain responsive and bounded.
+Use a saved/disposable Set, never the only copy of a user's work.
 
-## Ableton acceptance
+- [ ] Fresh process loads with checkout assets and staging folder temporarily unavailable.
+- [ ] Exactly one device on Main; stereo pass-through; useful ready/error/retry states.
+- [ ] Open, close, reopen and resize retain prompt/chat and stay usable.
+- [ ] System-browser login, return/confirmation, account balance and dashboard work.
+- [ ] Switching existing MIDI / empty slot / audio selection updates input and creation state without closing.
+- [ ] Sending after editing a selected MIDI clip uses its fresh notes.
+- [ ] Generate from text and generate from selected MIDI both complete.
+- [ ] Create writes the expected note count, pitch, timing, duration, velocity and clip length; native read-back passes.
+- [ ] Existing clips remain unchanged; a changed/occupied destination is rejected safely.
+- [ ] Undo behavior observed and documented; no unsupported grouping API.
+- [ ] Cancel, New chat and close/reopen cannot create a late clip or resurrect canceled results.
+- [ ] Prompt Copy/Paste and Response copy work inside Live.
+- [ ] Light/dark modes, compact/narrow layouts and account menu remain usable.
 
-- [x] The source device remains a transparent Max Audio Effect for the Main track and its connection control is not automatable.
-- [ ] The compact device exposes **Create**, **Connect**, balance, and **↗**; account actions work without a modal or feedback loop.
-- [x] Live 12.4.5 with Max 9.0.3 passes the current macOS release-candidate smoke and production create path.
-- [x] Automated tests verify the removed dropdown cannot override the model or decorate request dictionaries.
-- [x] Live visually confirms the restored full-width MIDI Prompt row and account controls in the embedded device panel only (source preview, 2026-09-13).
-- [x] Automated tests verify device-control bounds and History toggle z-order so transparent bpatcher margins cannot swallow clicks.
-- [ ] Funded balance, zero balance, and the dashboard-opening arrow are verified in Live with Max editing closed.
-- [x] The source preview restores existing authorization and displays a funded balance in Live with Max editing closed (2026-09-13); first-time consent, zero balance, and the browser link still need live acceptance.
-- [x] Automated tests verify the embedded login uses **connect**, not a disconnect toggle, and that rendering/restoring state never triggers authorization.
-- [ ] Verify first-time/reconnection access through the embedded **Connect** button in Live before release.
-- [ ] Live 12.4.x with its bundled Max 9.0.x or later passes on Windows 11.
-- [ ] Empty slots, existing clips, Arrangement clips, and Session clips are covered.
-- [ ] Undo/redo and Live Set reopen behavior are correct.
-- [ ] Multiple MIDIjourney instances authorize and generate independently without cross-talk.
-- [ ] Light/dark themes and common Live zoom settings remain readable.
-- [ ] Offline, rate-limit, low-balance, invalid-response, and cancellation errors are understandable.
+## Publish
 
-## Release
+Only after all applicable checks pass: preserve the archive branch, commit/push production main, tag `v3.0.0`, attach the exact verified frozen `MIDI Journey.amxd` plus checksum and release notes, and verify the downloaded artifact's checksum. Never silently replace an existing release asset.
 
-- [x] The external candidate is loaded on Main with all other MIDIjourney development devices removed from the Set.
-- [x] The candidate is opened through Live's device context menu using **Edit in Max**, not directly in standalone Max.
-- [x] **Freeze Device** and then **File → Save** complete in that Live-linked Max editor.
-- [x] The exact candidate path and its unchanged external staging project remain available until strict verification, promotion, and post-promotion verification all pass.
-- [x] Preparation is not rerun into the staging project after its candidate is frozen; any later build uses a fresh release root.
-- [x] The AMXD is resaved and frozen with Live 12.4.5 / Max 9.0.3.
-- [x] Version, minimum Live/Max metadata, description, and tags are correct.
-- [ ] README, changelog, screenshots, and release notes match the shipped device.
-- [x] The release artifact checksum is recorded.
-- [x] Model selector and request override removed from scope; model swapping is no longer a release gate.
-- [ ] A clean-machine smoke test passes before tagging `v3.0.0`.
+Main may contain candidate source before the tag, but documentation must not claim a release or compatibility that has not been tested.
+
+## Acceptance record
+
+### 2026-09-14 — source candidate, not frozen acceptance
+
+- macOS / Node 22.21.1: exact clean-install workflow passed all 127 tests. Production dependency audit reported no known vulnerabilities. React source formatting/lint checks passed.
+- Native preview: Live 12.4.15b2 with bundled Max 9.1.5 rendered the consolidated UI; the user completed system-browser login and the account/balance appeared. Standalone Max 9.0.3 produced a blank editor; it is not supported by this candidate.
+- Browser fixture: generation, model/token metadata and exact Response copying passed with fake provider data. This is not evidence of a native MIDI write.
+- Native automation remains unreliable: clicking the floating editor through app control switches focus to the main Live window; the linked Max editor also timed out. Final freeze, isolated loading, and native write/read-back are still unverified.
+- No V3 tag or release asset has been published. All native checks above remain open until tested on the exact frozen bytes.
+
+Record the final source commit, frozen artifact hash, OS/Live/Max versions and observed checks here. Unit tests or a clip title alone are not proof that Live received the correct notes.

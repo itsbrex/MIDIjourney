@@ -1,25 +1,13 @@
-# Migrating from V2 to V3
+# Moving to V3
 
-V3 keeps the original single-device MIDIjourney workflow, but changes the service connection and minimum host versions.
+V3 is a new persistent web-UI edition, not a skin over the old floating Max patchers.
 
-## Before upgrading
+- Keep an untouched copy of your old Set and original device.
+- After the V3 release is published, remove the older MIDI Journey device from the working Set, then add the frozen V3 device to Main.
+- Connect through the new Pollinations account menu. Old Keychain/device-code credentials are not imported, erased, or rotated.
+- The old History drawer is replaced by one local conversation and New chat. Existing saved history stays with the older device/Set and is not migrated.
+- Existing MIDI clips remain ordinary editable Live clips.
+- Conversation and login live in embedded-browser storage, not per-device Set parameters.
+- Do not load old and new editions simultaneously: both may use the same local port.
 
-- Keep the V2 AMXD if you still use Live 11 or earlier. V3 targets Live 12 and Max 9.
-- Save a copy of important Live Sets before replacing a device in an existing Set.
-- V2 API keys are not imported. Remove any old key from saved presets or Sets if one was stored there.
-
-## Connecting in V3
-
-There is no personal API-key field or connection modal. Click **Connect** directly in the compact device panel and approve MIDIjourney in the browser. While MIDIjourney checks the connection, opens the browser, or waits for authorization, the button shows **Connecting...** and is temporarily disabled. It returns to **Connect** after a disconnection or authorization error and changes to **Connected** only after authorization succeeds. Clicking **Connected** cancels any active generation, disconnects, and removes the saved authorization. Authorization is stored by the operating system, not in the Live Set.
-
-## Device placement
-
-Place V3 on Live's **Main** track. It remains a transparent Max Audio Effect and uses the Live Object Model to create or edit clips on MIDI tracks; it is not an instrument that belongs in a MIDI track's device chain.
-
-## History
-
-History remains part of MIDIjourney and is saved per device with the Live Set. It is restored when the Set reopens without starting a generation. Turning History off stops recent entries from being sent as model context without removing the visible archive. **Clear** removes the saved archive and its reusable context. History is capped at the 100 most recent messages.
-
-## Project compatibility
-
-V2 and V3 are separate devices. Existing V2 instances are not silently converted. Add V3 as a new device, confirm its output in the Set, and only then remove the old instance if desired.
+The old Max UI, intermediate web app and Ableton Extensions SDK edition are recoverable from `codex/archive-ui-experiments` at commit `6f326a1`. The downloaded proprietary Ableton SDK is not included in Git. `dev-mj2` is unchanged and is not the V3 base.

@@ -1,0 +1,41 @@
+{
+	"name": "midi-journey",
+	"version": "3.0.0",
+	"private": true,
+	"description": "Persistent Pollinations-powered MIDI creation for Ableton Live",
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.12"
+	},
+	"pollinations": {
+		"theme": "blue"
+	},
+	"scripts": {
+		"build:core": "node scripts/build-core.mjs",
+		"build": "node scripts/build.mjs",
+		"typecheck": "npm run build:core && tsc --noEmit -p app/tsconfig.json",
+		"test": "npm run build && node --test core/test/*.test.js app/test/*.test.mjs device/test/*.test.mjs",
+		"dev": "npm run build:core && vite --config app/vite.config.mjs",
+		"test:ui": "npm run build:core && vite --config app/test/vite.config.mjs",
+		"verify": "npm test && node scripts/check-release-source.mjs",
+		"release:prepare": "node scripts/prepare-release.mjs",
+		"release:verify": "node scripts/verify-release.mjs"
+	},
+	"dependencies": {
+		"@pollinations/sdk": "5.1.0-alpha.7",
+		"@pollinations/ui": "file:vendor/pollinations-ui-0.1.0-alpha.1.tgz",
+		"react": "19.3.0",
+		"react-dom": "19.3.0"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "4.3.3",
+		"@types/node": "24.13.4",
+		"@types/react": "19.3.0",
+		"@types/react-dom": "19.3.0",
+		"@vitejs/plugin-react": "6.1.1",
+		"esbuild": "0.28.2",
+		"tailwindcss": "4.3.3",
+		"typescript": "7.0.2",
+		"vite": "8.3.0"
+	}
+}
