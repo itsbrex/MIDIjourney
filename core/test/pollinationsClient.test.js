@@ -6,6 +6,7 @@ const {
   chatWithRetries,
   classifyGenerationError,
 } = require("../pollinationsClient.js");
+const MIDI_JOURNEY_AGENT = "community/pollinations-router/midijourney";
 
 function createHarness(responseOverride) {
   const calls = [];
@@ -62,7 +63,12 @@ test("generates strict structured MIDI and removes legacy API keys", async () =>
   assert.equal(result.apiKey, undefined);
   assert.equal(result.history.length, 2);
   assert.equal(calls[0][0][0].role, "system");
+  assert.equal(calls[0][1].model, MIDI_JOURNEY_AGENT);
   assert.equal(calls[0][1].responseFormat.type, "json_schema");
+  assert.deepEqual(
+    JSON.parse(calls[0][0][0].content.split("Required output JSON schema:\n")[1]),
+    calls[0][1].responseFormat.json_schema.schema,
+  );
   assert.equal(events.at(-1).type, "generation_completed");
   assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: openai");
 });
@@ -72,7 +78,7 @@ test("appends the response model to explanation and display history without chan
   response.model = "openai/gpt-6-astra";
   const generator = new PollinationsMidiClient({ auth });
   const result = await generator.generate({ promptText: "Create MIDI", gptModel: "openai" });
-  assert.equal(calls[0][1].model, "openai");
+  assert.equal(calls[0][1].model, MIDI_JOURNEY_AGENT);
   assert.equal(result.explanation, "A syncopated drum pattern.\n\nModel: openai/gpt-6-astra");
   assert.match(result.history[1].content, /explanation: >-\n  A syncopated drum pattern\.  Model: openai\/gpt-6-astra\nnotation:/);
   assert.equal(JSON.parse(result.history[1].contextContent).explanation, "A syncopated drum pattern.");
@@ -108,19 +114,20 @@ test("model attribution survives a maximum-length explanation and remains single
   assert.equal(JSON.parse(result.history[1].contextContent).explanation.length, 1000);
 });
 
-test("maps legacy model selections to the Pollinations default", async () => {
+test("always routes through the MIDI Journey agent despite missing or stale model selections", async () => {
   const { auth, calls } = createHarness();
   const generator = new PollinationsMidiClient({ auth });
-  for (const model of ["midijourney", "gpt-3.5-turbo-0613", "gpt-4o", "o1-mini"]) {
-    await generator.generate({ promptText: "Create a melody", gptModel: model });
+  for (const model of [undefined, "", "openai", "midijourney", "pollinations/midijourney", "pollinations/midijourney-large", "gpt-4o", "openai/gpt-6-astra", MIDI_JOURNEY_AGENT]) {
+    for (const field of ["model", "gptModel"]) {
+      await generator.generate({ promptText: "Use GPT Astra model please", [field]: model });
+      const [messages, options] = calls.at(-1);
+      assert.equal(options.model, MIDI_JOURNEY_AGENT);
+      assert.equal(JSON.parse(messages.at(-1).content).instruction, "Use GPT Astra model please");
+    }
   }
-  assert.deepEqual(
-    calls.map((call) => call[1].model),
-    ["openai", "openai", "openai", "openai"],
-  );
 });
 
-test("removed dropdown modelChoice cannot override the existing request model", async () => {
+test("removed dropdown modelChoice cannot bypass the MIDI Journey agent", async () => {
   const { auth, calls } = createHarness();
   const client = auth.requireClient();
   client.textModels = () => { assert.fail("generation must not query the removed selector's model catalog"); };
@@ -128,7 +135,7 @@ test("removed dropdown modelChoice cannot override the existing request model", 
   for (const modelChoice of [undefined, "auto", "openai/gpt-6-astra", "not-in-menu"]) {
     await generator.generate({ promptText: "A melody", modelChoice, gptModel: "openai" });
     const [messages, options] = calls.at(-1);
-    assert.equal(options.model, "openai");
+    assert.equal(options.model, MIDI_JOURNEY_AGENT);
     assert.equal(options.responseFormat.type, "json_schema");
     assert.equal(options.maxTokens, 12000);
     assert.equal(Object.hasOwn(JSON.parse(messages.at(-1).content), "modelChoice"), false);

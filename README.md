@@ -16,6 +16,8 @@ Selecting an existing clip uses it as input. **Create clip replaces the selected
 
 The response footer shows the provider-reported model and **Response** copy action, including MIDI data and token counts. No model selector or extra technical panel. **New chat** clears this app's local conversation and creative context, not clips already created in Live.
 
+Generation always calls the managed **MIDI Journey agent** (`community/pollinations-router/midijourney`) through the Pollinations SDK. It does not call the legacy `midijourney` models or pin the agent's base model. Model preferences in your message go to the agent; the footer reports the model returned by the API. The MIDI output contract is sent in both the message and `response_format`, and every result is validated locally before it can be written to Live.
+
 ## Requirements and scope
 
 - macOS, Ableton Live 12 with Max for Live, and Max **9.1.5 or newer**.

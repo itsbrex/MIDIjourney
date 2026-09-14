@@ -132,19 +132,6 @@ function classifyGenerationError(error) {
   };
 }
 
-function normalizeModel(model) {
-  if (typeof model !== "string") return CONFIG.defaultModel;
-  const trimmed = model.trim();
-  if (
-    !trimmed ||
-    trimmed.toLowerCase() === "midijourney" ||
-    /^(?:gpt-|o1(?:-|$)|o3(?:-|$)|o4(?:-|$))/i.test(trimmed)
-  ) {
-    return CONFIG.defaultModel;
-  }
-  return trimmed.slice(0, 100);
-}
-
 function normalizeTemperature(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return CONFIG.defaultTemperature;
@@ -170,11 +157,15 @@ class PollinationsMidiClient {
       const safeInput = stripSensitiveFields(input);
       const request = buildRequest(safeInput);
       const messages = [
-        { role: "system", content: SYSTEM_PROMPT },
+        // Managed agents may not forward response_format to their base model.
+        // Carry the exact same output contract in messages; still validate locally.
+        { role: "system", content: `${SYSTEM_PROMPT}\n\nRequired output JSON schema:\n${JSON.stringify(MIDI_CLIP_RESPONSE_SCHEMA)}` },
         ...buildContext(safeInput.history, Boolean(safeInput.historyStatus)),
         { role: "user", content: JSON.stringify(request) },
       ];
-      const model = normalizeModel(safeInput.gptModel || safeInput.model);
+      // Always call the managed MIDI Journey agent. Legacy UI selections must
+      // never bypass it; model preferences in the prompt are for the agent.
+      const model = CONFIG.defaultModel;
       const temperature = normalizeTemperature(safeInput.temperature);
       this.onEvent({ type: "generation_started", model });
 
@@ -279,6 +270,5 @@ exports.PollinationsMidiClient = PollinationsMidiClient;
 exports.chatWithRetries = chatWithRetries;
 exports.classifyGenerationError = classifyGenerationError;
 exports.isRetryableGenerationError = isRetryableGenerationError;
-exports.normalizeModel = normalizeModel;
 exports.normalizeTemperature = normalizeTemperature;
 exports.raceWithAbort = raceWithAbort;

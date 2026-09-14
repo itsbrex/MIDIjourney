@@ -6,6 +6,8 @@ Status: **source consolidation verified locally; native release acceptance pendi
 
 macOS; one device on Main; persistent Pollinations web UI; single-selected-clip input; creation in empty Session slots and in-place replacement of selected MIDI clips. No automatic multi-selection, model selector, Windows claim or Extensions SDK.
 
+Generation must call the managed `community/pollinations-router/midijourney` agent, not `openai`, a legacy MIDIjourney model or the agent's base model directly.
+
 ## Automated and packaging checks
 
 - [x] Clean-checkout `npm ci && npm run verify` succeeds without sibling repos or SDK downloads.
@@ -28,6 +30,7 @@ Use a saved/disposable Set, never the only copy of a user's work.
 - [ ] Switching existing MIDI / empty slot / audio selection updates input and creation state without closing.
 - [ ] Sending after editing a selected MIDI clip uses its fresh notes.
 - [ ] Generate from text and generate from selected MIDI both complete.
+- [ ] Response details show the managed agent as `requestedModel`; its returned content passes MIDI validation, and the footer reflects API model metadata.
 - [ ] Create writes the expected note count, pitch, timing, duration, velocity and clip length; native read-back passes.
 - [ ] Occupied selection is replaced in place (all old notes, including notes outside the loop); title and length update. Other clips and clip identity stay unchanged.
 - [ ] Stale selection, recording, audio and Arrangement destinations are rejected before mutation. A full Session track can still replace its selected clip.
@@ -66,3 +69,10 @@ Record the final source commit, frozen artifact hash, OS/Live/Max versions and o
 - A clean archive of `1d796de` passed `npm ci && npm run verify`: 139 tests, no failures. The dependency install reported no known vulnerabilities. GitHub's Node 22 and 24 jobs also passed.
 - The final browser fixture displays the short replacement-aware welcome and full-bleed illustration without console warnings/errors. This fixture does not verify Live mutations.
 - The app key is unchanged. The local plan, credentials and prototype archives remain ignored. Native freezing and exact-artifact acceptance remain required before tagging V3.
+
+### 2026-09-14 — managed-agent routing correction
+
+- The public catalog with `agents=true` lists `community/pollinations-router/midijourney` with `agent: true`. The old `openai` route bypassed it. Generation now always targets this agent; legacy model fields cannot override that route.
+- The agent runtime may ignore `response_format`, so the existing JSON schema is also included in the system message. Strict local MIDI validation remains unchanged. The agent's base model is not pinned by this app.
+- Local build and all 141 tests pass. New transport tests cover the actual chat session, compiled MIDI core and installed SDK, including request serialization, MIDI input, response attribution and retry routing. These use mocked HTTP responses, not a paid agent call.
+- Earlier staged or frozen candidates are stale. Rebuild/reload and repeat native acceptance on the corrected bundle before publishing; real-agent output compatibility still needs that check. No key was changed.

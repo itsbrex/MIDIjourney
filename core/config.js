@@ -17,7 +17,8 @@ const CONFIG = Object.freeze({
   appKey: POLLINATIONS_APP_KEY,
   appKeyPlaceholder: APP_KEY_PLACEHOLDER,
   authScope: "generate profile usage",
-  defaultModel: "openai",
+  // The managed agent, not the similarly named legacy MIDI models or its base model.
+  defaultModel: "community/pollinations-router/midijourney",
   defaultTemperature: 0.7,
   maxContextCharacters: 100000,
   maxContextEntryLength: 40000,
