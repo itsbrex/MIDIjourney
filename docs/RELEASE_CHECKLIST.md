@@ -9,7 +9,7 @@ macOS; one device on Main; persistent Pollinations web UI; single-selected-clip 
 ## Automated and packaging checks
 
 - [x] Clean-checkout `npm ci && npm run verify` succeeds without sibling repos or SDK downloads.
-- [x] CI passes on the production source commit (`1844e4d`; [Verify V3](https://github.com/pollinations/MIDIjourney/actions/runs/34830676218)).
+- [x] CI passes on the production source commit (`1d796de`; Node 22 and 24, [Verify V3](https://github.com/pollinations/MIDIjourney/actions/runs/34834646104)).
 - [x] Vendored UI checksum, licenses and source provenance reviewed.
 - [x] Staged repository excludes personal sessions, credentials, the local plan and downloaded SDK. Device staging excludes test UI; tests remain in the source repository.
 - [x] `npm run release:prepare` creates an isolated project using the unchanged authorized app key.
@@ -59,3 +59,10 @@ Record the final source commit, frozen artifact hash, OS/Live/Max versions and o
 - The selected Session slot is now the exact destination. Existing MIDI clips are replaced in place; empty slots still create a clip. No empty-slot search remains.
 - Local build and 139 tests pass, including negative/out-of-loop note removal, marker resizing, full tracks, stale identities, recording/audio/Arrangement rejection, and failure/replay safety.
 - Native replacement is not yet verified. The linked Max editor timed out during app-control inspection; Live still has the earlier writer loaded. A fresh isolated source candidate was prepared for reload. This does not satisfy the frozen-artifact acceptance checks above.
+
+### 2026-09-14 — committed source verification
+
+- Three focused commits on `main` cover selected-clip replacement (`7b9911d`), the conversation card and original music artwork (`8abd4a2`), and release documentation (`1d796de`). All are pushed.
+- A clean archive of `1d796de` passed `npm ci && npm run verify`: 139 tests, no failures. The dependency install reported no known vulnerabilities. GitHub's Node 22 and 24 jobs also passed.
+- The final browser fixture displays the short replacement-aware welcome and full-bleed illustration without console warnings/errors. This fixture does not verify Live mutations.
+- The app key is unchanged. The local plan, credentials and prototype archives remain ignored. Native freezing and exact-artifact acceptance remain required before tagging V3.
