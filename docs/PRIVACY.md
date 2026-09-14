@@ -18,7 +18,7 @@ The current chat is saved in embedded-browser localStorage, bounded to 30 exchan
 
 **New chat** cancels active generation and clears the app's conversation, draft and creative context. It does not remove clips, sign out, or erase older device versions' saved history.
 
-**Response** copies the provider message, call metadata and validated MIDI on explicit click. Original messages larger than 512,000 characters are not retained; credential-like text is redacted. The export reports when the original was not retained. Native copying rejects exports above 4 million characters rather than silently truncating them.
+There is no response-copy control or visible technical-details panel. Original provider messages are retained only in bounded local call diagnostics: messages larger than 512,000 characters are not retained, and credential-like text is redacted. They are not automatically sent to Max logs.
 
 Prompt Copy/Paste reads or writes the OS clipboard only on explicit action, with a 12,000-character prompt limit. Clipboard text and provider response bodies are not printed in app logs. The app does not continuously read the clipboard.
 

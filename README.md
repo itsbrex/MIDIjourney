@@ -14,9 +14,9 @@ A persistent musical conversation for Ableton Live. Describe an idea, refine it 
 
 Selecting an existing clip uses it as input. **Create clip replaces the selected Session clip's notes, title and length**, or creates a new clip in the selected empty slot. It never redirects to another slot. Other clips stay unchanged; recording clips cannot be replaced. Switching selection does not erase your prompt or conversation.
 
-The response footer shows the provider-reported model and **Response** copy action, including MIDI data and token counts. No model selector or extra technical panel. **New chat** clears this app's local conversation and creative context, not clips already created in Live.
+Compact responses include a piano-roll preview and a **Create clip** button. When creation is unavailable, hover, focus or tap the disabled control to learn why. No model label, response-copy action or extra technical panel. MIDI input badges show the clip name on one line. **New chat** clears this app's local conversation and creative context, not clips already created in Live.
 
-Generation always calls the managed **MIDI Journey agent** (`community/pollinations-router/midijourney`) through the Pollinations SDK. It does not call the legacy `midijourney` models or pin the agent's base model. Model preferences in your message go to the agent; the footer reports the model returned by the API. The MIDI output contract is sent in both the message and `response_format`, and every result is validated locally before it can be written to Live.
+Generation always calls the managed **MIDI Journey agent** (`community/pollinations-router/midijourney`) through the Pollinations SDK. It does not call the legacy `midijourney` models or pin the agent's base model. Model preferences in your message go to the agent. The app requests and accepts the agent's native YAML metadata and CSV note notation, while still accepting valid JSON replies. Managed agents reject structured-output options such as `response_format`, so none are sent. Every result is strictly validated locally before it can be written to Live; malformed notes are rejected, never silently repaired. Bounded local call diagnostics retain the original agent text without displaying or automatically logging it.
 
 ## Requirements and scope
 

@@ -30,13 +30,14 @@ Use a saved/disposable Set, never the only copy of a user's work.
 - [ ] Switching existing MIDI / empty slot / audio selection updates input and creation state without closing.
 - [ ] Sending after editing a selected MIDI clip uses its fresh notes.
 - [ ] Generate from text and generate from selected MIDI both complete.
-- [ ] Response details show the managed agent as `requestedModel`; its returned content passes MIDI validation, and the footer reflects API model metadata.
+- [ ] Generation uses the managed agent and its returned content passes MIDI validation. No model label or Response copy control appears in the footer; no model label is appended to musical explanations, including older saved replies.
 - [ ] Create writes the expected note count, pitch, timing, duration, velocity and clip length; native read-back passes.
 - [ ] Occupied selection is replaced in place (all old notes, including notes outside the loop); title and length update. Other clips and clip identity stay unchanged.
 - [ ] Stale selection, recording, audio and Arrangement destinations are rejected before mutation. A full Session track can still replace its selected clip.
 - [ ] Undo behavior observed and documented; no unsupported grouping API.
 - [ ] Cancel, New chat and close/reopen cannot create a late clip or resurrect canceled results.
-- [ ] Prompt Copy/Paste and Response copy work inside Live.
+- [ ] Prompt Copy/Paste works through the existing right-click menu inside Live, with no extra clipboard toolbar buttons. Only disabled Create clip controls show an explanatory tooltip; piano rolls and single-line input badges have no hover popups.
+- [ ] The compact header contains only New chat, profile and color-mode controls; no title or decorative image.
 - [ ] Light/dark modes, compact/narrow layouts and account menu remain usable.
 
 ## Publish
@@ -73,6 +74,21 @@ Record the final source commit, frozen artifact hash, OS/Live/Max versions and o
 ### 2026-09-14 — managed-agent routing correction
 
 - The public catalog with `agents=true` lists `community/pollinations-router/midijourney` with `agent: true`. The old `openai` route bypassed it. Generation now always targets this agent; legacy model fields cannot override that route.
-- The agent runtime may ignore `response_format`, so the existing JSON schema is also included in the system message. Strict local MIDI validation remains unchanged. The agent's base model is not pinned by this app.
+- At this stage the JSON schema was included in both the system message and `response_format`. The later real-agent HTTP 400 below disproved this request contract; this candidate must not be released. The agent's base model is not pinned by this app.
 - Local build and all 141 tests pass. New transport tests cover the actual chat session, compiled MIDI core and installed SDK, including request serialization, MIDI input, response attribution and retry routing. These use mocked HTTP responses, not a paid agent call.
 - Earlier staged or frozen candidates are stale. Rebuild/reload and repeat native acceptance on the corrected bundle before publishing; real-agent output compatibility still needs that check. No key was changed.
+
+### 2026-09-14 — managed-agent HTTP 400 correction
+
+- The user's actual provider error was `Structured text output is not supported by managed agents`. The request targeted the correct agent but incorrectly supplied structured-output options.
+- Removed SDK `responseFormat` entirely; the MIDI schema stays in the system message and strict local response validation stays in place. No alternate model or output-mode fallback was added; authentication and keys are unchanged.
+- A real-SDK transport regression reproduces the provider's rejection when `response_format` is present. It failed before this fix and passes afterward. Separate checks reject prose and invalid MIDI even without provider-enforced structured output.
+- These are mocked-provider checks, not native acceptance. The rebuilt device still needs a successful real-agent generation and Live write/read-back before freezing or publishing V3.
+
+### 2026-09-14 — native agent output compatibility
+
+- Direct agent probes returned YAML metadata with a CSV `notation` block, including when asked for JSON. The app now requests that native format instead of a JSON schema. Valid JSON replies remain compatible.
+- YAML/CSV is converted into the existing normalized MIDI representation, then strictly validated before preview or Live writes. No missing note values are invented, no invalid notes are clamped or dropped, and no repair call or model fallback is added. Aliases, tags, nested/unknown fields, duplicate keys, multiple documents, excessive note counts and oversized responses are rejected.
+- All 159 automated tests pass, including recorded real-agent responses through the compiled core, installed SDK, chat context, piano-roll geometry, persistence and exact response copying. The production build includes type checking and passes source/dependency verification.
+- One additional real request through the updated compiled app core, SDK and chat session completed in a single attempt: `Afternoon Song`, 8 valid notes, YAML/CSV with explanation, 4,568 total tokens. The API reported model ID `9a0db868-29cb-4e78-9d44-ba2be6551337`; this does not prove the underlying model used. No keys or Live clips were changed.
+- A fresh source candidate is required; earlier candidates do not include this parser. Native reload, clip write/read-back and actual Max freeze remain required before publishing V3.

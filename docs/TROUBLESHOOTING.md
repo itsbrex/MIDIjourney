@@ -18,7 +18,7 @@ Select a MIDI clip in Live. An empty slot supplies a destination but no notes. A
 
 ## Create clip is disabled
 
-Choose a Session slot on a MIDI track. An empty slot receives a new clip; an existing MIDI clip has its notes, title and length replaced in place. There is no automatic search for another slot. Stop recording before replacing a clip. If the destination changed since the button was clicked, select the intended clip and try again. Arrangement clips can be read as input, but writing requires a Session selection.
+Hover, focus or tap the disabled Create clip control to see the reason. Choose a Session slot on a MIDI track. An empty slot receives a new clip; an existing MIDI clip has its notes, title and length replaced in place. There is no automatic search for another slot. Stop recording before replacing a clip. If the destination changed since the button was clicked, select the intended clip and try again. Arrangement clips can be read as input, but writing requires a Session selection.
 
 ## A write warning appears
 
@@ -26,7 +26,11 @@ Do not click repeatedly. A timeout or read-back warning can mean Live created so
 
 ## Copy or paste seems unreliable
 
-Live/Max may intercept native keyboard shortcuts. Use the explicit Copy/Paste controls beside the prompt. Response copies the full diagnostic export and MIDI. Neither operation logs clipboard content. Oversized content is rejected rather than truncated.
+Use the prompt’s existing right-click menu for Copy/Paste. The extra toolbar buttons and experimental Option shortcuts have been removed. Standard keyboard shortcuts may be intercepted by Live/Max.
+
+## The header still shows a title or sky image
+
+The current header contains only New chat, profile and color-mode controls. Rebuild and reload the updated device if you still see the old design; refreshing the page alone does not update the running server.
 
 ## Old design or stale code
 
@@ -34,4 +38,4 @@ Only the frozen V3 release is portable. A source candidate must be reloaded afte
 
 ## Report a problem
 
-Include Live, Max and macOS versions, the device SHA-256/release tag, what you clicked and what happened. If useful, use Response to copy one generation's details. Review the export before sharing musical material; never share login tokens or OAuth callback links.
+Include Live, Max and macOS versions, the device SHA-256/release tag, what you clicked and the visible error message. Review screenshots before sharing musical material; never share login tokens or OAuth callback links.

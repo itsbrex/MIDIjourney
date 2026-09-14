@@ -25,6 +25,6 @@ The shared UI uses a modern embedded browser. Older bundled Max versions may not
 - The browser preview has no Live mutation bridge.
 - No Extensions SDK installation or beta-only Extensions feature is required by the architecture.
 - Chat persists locally in the embedded browser, not inside the Live Set.
-- Native keyboard shortcuts can be intercepted by Live/Max; explicit prompt Copy/Paste and Response copy controls are provided.
+- Native keyboard shortcuts can be intercepted by Live/Max; use the prompt's existing right-click Copy/Paste menu.
 
 Generation supports at most 2,048 notes and 4,096 beats per output. Input sanitization retains the original rules; invalid provider output is rejected, not silently truncated into a successful clip.
