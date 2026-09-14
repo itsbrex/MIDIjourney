@@ -23,7 +23,10 @@ export function bridge(host) {
 			if (value.ok) waiting.resolve(value);
 			else
 				waiting.reject(
-					new Error(value.error || "Live could not complete this request."),
+					Object.assign(
+						new Error(value.error || "Live could not complete this request."),
+						{ code: value.code },
+					),
 				);
 		} catch (failure) {
 			waiting.reject(failure);
@@ -36,10 +39,17 @@ export function bridge(host) {
 				() => {
 					pending.delete(id);
 					reject(
-						new Error(
-							action === "create"
-								? "Live has not confirmed the write. Check the clip before trying again; it was not retried."
-								: "The Live connector is not responding.",
+						Object.assign(
+							new Error(
+								action === "create"
+									? "Live has not confirmed the write. Check the clip before trying again; it was not retried."
+									: "The Live connector is not responding.",
+							),
+							{
+								code: action.startsWith("clipboard_")
+									? "CLIPBOARD_CONNECTOR_TIMEOUT"
+									: "LIVE_CONNECTOR_TIMEOUT",
+							},
 						),
 					);
 				},

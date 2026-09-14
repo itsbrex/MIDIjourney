@@ -1,5 +1,25 @@
 import { bridge, isJweb } from "./jweb.mjs";
 
+// Physical keys survive macOS Option producing a different character in `key`.
+// Do not steal Ctrl/Cmd shortcuts, AltGr text entry or IME composition.
+export function promptClipboardAction(event) {
+	if (
+		event.defaultPrevented ||
+		event.isComposing ||
+		!event.altKey ||
+		event.ctrlKey ||
+		event.metaKey ||
+		event.shiftKey ||
+		event.getModifierState?.("AltGraph")
+	)
+		return null;
+	return event.code === "KeyC"
+		? "copy"
+		: event.code === "KeyV"
+			? "paste"
+			: null;
+}
+
 export async function readPromptClipboard(host) {
 	return isJweb(host)
 		? (await bridge(host)("clipboard_read")).text
@@ -13,10 +33,20 @@ export async function writePromptClipboard(host, text) {
 
 export async function writeResponseClipboard(host, text) {
 	if (typeof text !== "string" || text.length > 4_000_000)
-		throw new Error("Response is too large to copy.");
+		throw Object.assign(new Error("Response is too large to copy."), {
+			code: "CLIPBOARD_TOO_LARGE",
+		});
 	if (isJweb(host))
 		await bridge(host)("clipboard_response_write", JSON.stringify({ text }));
 	else await host.navigator.clipboard.writeText(text);
+}
+
+export function responseCopyError(error) {
+	if (error?.code === "CLIPBOARD_CONNECTOR_TIMEOUT")
+		return "Live did not acknowledge the copy. Reload the updated MIDI Journey device and try again.";
+	if (error?.code === "CLIPBOARD_TOO_LARGE")
+		return "This response exceeds the copy size limit.";
+	return "Could not copy the response to the system clipboard. Please try again.";
 }
 
 export function copyPromptText(input) {

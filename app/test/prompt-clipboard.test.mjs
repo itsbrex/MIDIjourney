@@ -4,13 +4,54 @@ import {
 	clipboardOperation,
 	copyPromptText,
 	insertClipboardText,
+	promptClipboardAction,
+	responseCopyError,
 } from "../src/prompt-clipboard.mjs";
+
+test("Option clipboard shortcuts use physical keys, without stealing standard shortcuts or text composition", () => {
+	const event = { altKey: true, code: "KeyC", key: "ç" };
+	assert.equal(promptClipboardAction(event), "copy");
+	assert.equal(
+		promptClipboardAction({ ...event, code: "KeyV", key: "√" }),
+		"paste",
+	);
+	// Repeat events still identify the shortcut so the listener can consume it,
+	// but it must not start another clipboard operation.
+	assert.equal(promptClipboardAction({ ...event, repeat: true }), "copy");
+	for (const extra of [
+		{ altKey: false },
+		{ ctrlKey: true },
+		{ metaKey: true },
+		{ shiftKey: true },
+		{ isComposing: true },
+		{ defaultPrevented: true },
+		{ code: "KeyX" },
+		{ code: "", key: "c" },
+		{ getModifierState: (key) => key === "AltGraph" },
+	])
+		assert.equal(promptClipboardAction({ ...event, ...extra }), null);
+});
 
 test("copy uses selection or whole prompt without modifying it", () => {
 	const input = { value: "soft piano", selectionStart: 5, selectionEnd: 10 };
 	assert.equal(copyPromptText(input), "piano");
 	assert.equal(copyPromptText({ ...input, selectionStart: 10 }), "soft piano");
 	assert.equal(input.value, "soft piano");
+});
+
+test("response copy distinguishes a missing native acknowledgement without exposing raw failures", () => {
+	assert.match(
+		responseCopyError({ code: "CLIPBOARD_CONNECTOR_TIMEOUT" }),
+		/Reload the updated MIDI Journey device/,
+	);
+	assert.match(
+		responseCopyError({ code: "CLIPBOARD_TOO_LARGE" }),
+		/size limit/,
+	);
+	assert.doesNotMatch(
+		responseCopyError(new Error("private system error")),
+		/private system error/,
+	);
 });
 test("paste inserts at cursor, replaces selection, and preserves literal multiline text", () => {
 	assert.deepEqual(

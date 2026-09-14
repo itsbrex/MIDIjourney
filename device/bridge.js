@@ -46,18 +46,28 @@ function later(fn, delay) {
 function respond(id, value) { outlet(0, "response", String(id), JSON.stringify(value)); }
 function init() { enabled = true; }
 function dashboard() { outlet(1, "dashboard"); }
-// jweb emits JavaScript outlet arguments as a Max list, including the selector.
+// Accept named Max messages as well as jweb's list form. Without named
+// handlers, clipboard messages reach anything() and disappear without an ACK.
+function clipboard_read(id) {
+  if (validRequestId(id)) outlet(1, "clipboard_read", id);
+}
+function clipboard_write(id, raw) {
+  if (validRequestId(id) && typeof raw === "string" && raw.length <= 100000)
+    outlet(1, "clipboard_write", id, raw);
+}
+function clipboard_response_write(id, raw) {
+  if (validRequestId(id) && typeof raw === "string" && raw.length <= 24000100)
+    outlet(1, "clipboard_response_write", id, raw);
+}
 // Dispatch only explicit operations; ignore browser navigation notifications.
 function list() {
   var values = arrayfromargs(arguments);
   if (values[0] === "context") context(values[1], values[2]);
   else if (values[0] === "create") create(values[1], values[2]);
   else if (values[0] === "dashboard") dashboard();
-  else if (values[0] === "clipboard_read" && validRequestId(values[1])) outlet(1, "clipboard_read", values[1]);
-  else if (values[0] === "clipboard_write" && validRequestId(values[1]) && typeof values[2] === "string" && values[2].length <= 100000)
-    outlet(1, "clipboard_write", values[1], values[2]);
-  else if (values[0] === "clipboard_response_write" && validRequestId(values[1]) && typeof values[2] === "string" && values[2].length <= 24000100)
-    outlet(1, "clipboard_response_write", values[1], values[2]);
+  else if (values[0] === "clipboard_read") clipboard_read(values[1]);
+  else if (values[0] === "clipboard_write") clipboard_write(values[1], values[2]);
+  else if (values[0] === "clipboard_response_write") clipboard_response_write(values[1], values[2]);
 }
 function anything() {}
 function validRequestId(id) { return typeof id === "string" && /^[a-z0-9-]{1,80}$/.test(id); }
