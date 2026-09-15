@@ -20,7 +20,7 @@ The current chat is saved in embedded-browser localStorage, bounded to 30 exchan
 
 There is no response-copy control or visible technical-details panel. Original provider messages are retained only in bounded local call diagnostics: messages larger than 512,000 characters are not retained, and credential-like text is redacted. They are not automatically sent to Max logs.
 
-Prompt Copy/Paste reads or writes the OS clipboard only on explicit action, with a 12,000-character prompt limit. Clipboard text and provider response bodies are not printed in app logs. The app does not continuously read the clipboard.
+Prompt Copy/Paste uses the embedded browser's native right-click menu, with a 12,000-character prompt limit. There is no custom OS clipboard transport or clipboard polling. Clipboard text and provider response bodies are not printed in app logs.
 
 The app makes one bounded retry for certain transient provider failures; it never switches models or retries Live writes automatically. A timeout after a Live write requires checking the clip before trying again.
 

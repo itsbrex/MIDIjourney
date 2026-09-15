@@ -14,7 +14,7 @@ The shared UI uses a modern embedded browser. Older bundled Max versions may not
 | Live 12.4.15b2 / standalone Max 9.0.3 | Consolidated editor was blank | Unsupported by this candidate |
 | Live 12.4.5 / Max 9.0.3 | Earlier all-Max UI was tested | No: different UI/runtime |
 | Node 22.21.1, macOS | Clean install/build and 127 tests pass without local configuration or SDK downloads | Source checks only |
-| Windows | Some inherited launch paths exist | Unsupported for initial V3; clipboard implementation is macOS-only |
+| Windows | Some inherited launch paths exist | Not validated; unsupported for initial V3 |
 
 ## Deliberate limits
 

@@ -1,6 +1,6 @@
 # V3 release gate
 
-Status: **source consolidation verified locally; native release acceptance pending. No finalized V3 release yet.**
+Status: **V3 source cleanup verified locally; final native acceptance and user release approval pending. No finalized V3 release yet.**
 
 ## Product scope
 
@@ -10,8 +10,8 @@ Generation must call the managed `community/pollinations-router/midijourney` age
 
 ## Automated and packaging checks
 
-- [x] Clean-checkout `npm ci && npm run verify` succeeds without sibling repos or SDK downloads.
-- [x] CI passes on the production source commit (`1d796de`; Node 22 and 24, [Verify V3](https://github.com/pollinations/MIDIjourney/actions/runs/34834646104)).
+- [ ] Fresh dependency installation and `npm run verify` pass on the final source commit. Source-only cleanup build passes with the installed dependencies; repeat clean `npm ci` for the release candidate.
+- [ ] CI passes on the final production source commit (Node 22 and 24). Historical passing runs do not cover the latest cleanup.
 - [x] Vendored UI checksum, licenses and source provenance reviewed.
 - [x] Staged repository excludes personal sessions, credentials, the local plan and downloaded SDK. Device staging excludes test UI; tests remain in the source repository.
 - [x] `npm run release:prepare` creates an isolated project using the unchanged authorized app key.
@@ -41,6 +41,8 @@ Use a saved/disposable Set, never the only copy of a user's work.
 - [ ] Light/dark modes, compact/narrow layouts and account menu remain usable.
 
 ## Publish
+
+Do not create a release or tag until the user explicitly approves publication after reviewing the final candidate.
 
 Only after all applicable checks pass: preserve the archive branch, commit/push production main, tag `v3.0.0`, attach the exact verified frozen `MIDI Journey.amxd` plus checksum and release notes, and verify the downloaded artifact's checksum. Never silently replace an existing release asset.
 
