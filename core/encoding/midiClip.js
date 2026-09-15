@@ -7,38 +7,6 @@ const AGENT_METADATA_FIELDS = new Set([
 ]);
 const CSV_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 
-const MIDI_CLIP_RESPONSE_SCHEMA = Object.freeze({
-  type: "object",
-  additionalProperties: false,
-  required: ["title", "explanation", "key", "duration", "notes"],
-  properties: {
-    title: { type: "string", minLength: 1, maxLength: CONFIG.maxTitleLength },
-    explanation: { type: "string", maxLength: 1000 },
-    key: { type: ["string", "null"], maxLength: 40 },
-    duration: { type: "number", exclusiveMinimum: 0, maximum: CONFIG.maxClipBeats },
-    notes: {
-      type: "array",
-      minItems: 1,
-      maxItems: CONFIG.maxOutputNotes,
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: ["pitch", "start_time", "duration", "velocity"],
-        properties: {
-          pitch: { type: "integer", minimum: 0, maximum: 127 },
-          start_time: { type: "number", minimum: 0, maximum: CONFIG.maxClipBeats },
-          duration: {
-            type: "number",
-            exclusiveMinimum: 0,
-            maximum: CONFIG.maxClipBeats,
-          },
-          velocity: { type: "integer", minimum: 1, maximum: 127 },
-        },
-      },
-    },
-  },
-});
-
 class MidiValidationError extends Error {
   constructor(message, details = []) {
     super(message);
@@ -326,7 +294,6 @@ function normalizeMidiClip(payload) {
   return { title, explanation, key, duration, notes };
 }
 
-exports.MIDI_CLIP_RESPONSE_SCHEMA = MIDI_CLIP_RESPONSE_SCHEMA;
 exports.MidiValidationError = MidiValidationError;
 exports.normalizeMidiClip = normalizeMidiClip;
 exports.parseMidiClipResponse = parseMidiClipResponse;

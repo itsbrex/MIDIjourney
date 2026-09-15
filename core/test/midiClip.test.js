@@ -7,7 +7,6 @@ const {
   sanitizeInputNotes,
   validateNotes,
 } = require("../encoding/midiClip.js");
-const { checkMidi } = require("../encoding/checkMidi.js");
 
 const validClip = {
   title: "Night Pulse",
@@ -25,7 +24,7 @@ test("accepts MIDI boundary values and sorts notes", () => {
   assert.equal(clip.notes[0].pitch, 0);
   assert.equal(clip.notes[0].velocity, 127);
   assert.equal(clip.notes[0].mute, 0);
-  assert.equal(checkMidi(clip.notes), null);
+  assert.deepEqual(validateNotes(clip.notes), []);
 });
 
 test("reports every invalid note instead of only the last note", () => {
@@ -34,10 +33,7 @@ test("reports every invalid note instead of only the last note", () => {
     { pitch: 60, start_time: 1, duration: 1, velocity: 100 },
   ]);
   assert.equal(errors.length, 4);
-  assert.match(checkMidi([
-    { pitch: -1, start_time: -1, duration: 0, velocity: 0 },
-    { pitch: 60, start_time: 1, duration: 1, velocity: 100 },
-  ]), /notes\[0\]\.pitch/);
+  assert.match(errors.join(", "), /notes\[0\]\.pitch/);
 });
 
 test("keeps velocity zero invalid for generated MIDI", () => {
