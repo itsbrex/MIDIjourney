@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import test from "node:test";
@@ -234,31 +233,31 @@ test("compact header contains only new chat, account and shared color mode contr
 	);
 });
 
-test("archived website-v2 assets remain unchanged and are no longer used by the UI", async () => {
-	for (const [mode, digest] of [
-		["day", "af92ecefc9056151615464df49e1cde91fd22faab86ab0da7e782779c1d54a94"],
-		[
-			"night",
-			"cd536868a37d86a9637669767a9c9743a13b3faa04ee859e0612500cfdc094e2",
-		],
+test("V3 uses native clipboard menus without a custom OS clipboard bridge", async () => {
+	for (const filename of [
+		"../../device/server.mjs",
+		"../../device/bridge.js",
+		"../src/Workspace.tsx",
 	]) {
-		const asset = await readFile(
-			new URL(`../src/assets/play-controls-${mode}.webp`, import.meta.url),
-		);
-		assert.equal(asset.subarray(8, 12).toString(), "WEBP");
-		assert.equal(createHash("sha256").update(asset).digest("hex"), digest);
-		assert.ok(
-			asset.length < 20_000,
-			"Original optimized Play asset stays small",
+		const source = await readFile(new URL(filename, import.meta.url), "utf8");
+		assert.doesNotMatch(
+			source,
+			/clipboard_read|clipboard_write|clipboard_response|onContextMenu/,
 		);
 	}
-	const info = await readFile(
-		new URL("../public/artwork-info.txt", import.meta.url),
-		"utf8",
+	const { patcher } = makeDevice(resolve("dist"));
+	assert.equal(
+		patcher.boxes.find(({ box }) => box.id === "route").box.text,
+		"route uiurl panel",
 	);
-	assert.match(info, /feat\/website-v2/);
-	assert.match(info, /PlaygroundSky/);
-	assert.match(info, /Copied unchanged/);
+	assert.ok(
+		patcher.lines.some(
+			({ patchline }) =>
+				patchline.source[0] === "route" &&
+				patchline.source[1] === 1 &&
+				patchline.destination[0] === "panel",
+		),
+	);
 });
 
 test("fresh chats introduce MIDI Journey in an assistant bubble without an API call or response controls", async () => {

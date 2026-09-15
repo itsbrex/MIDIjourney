@@ -6,7 +6,9 @@ import { get } from "node:http";
 import { createRequire } from "node:module";
 import { runInNewContext } from "node:vm";
 import { build } from "esbuild";
-import { readdir, readFile } from "node:fs/promises";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 function rawStatus(url, headers) {
   return new Promise((done, reject) => {
@@ -16,12 +18,11 @@ function rawStatus(url, headers) {
 
 for (const embedded of [false, true]) {
   test(`device server serves WebP fixtures (${embedded ? "embedded" : "directory"} assets)`, async (t) => {
-    // Retain format coverage using the archived art, without shipping it in the UI.
-    const directory = fileURLToPath(new URL("../../app/src/", import.meta.url));
-    const names = (await readdir(directory + "assets")).filter(name => /^play-controls-(day|night)\.webp$/.test(name));
-    assert.equal(names.length, 2);
-    const images = Object.fromEntries(await Promise.all(names.map(async name =>
-      ["assets/" + name, await readFile(directory + "assets/" + name)])));
+    // MIME and exact-byte coverage needs no retired production artwork.
+    const directory = await mkdtemp(join(tmpdir(), "midi-journey-mime-"));
+    t.after(() => rm(directory, { recursive: true, force: true }));
+    const images = { "fixture.webp": Buffer.from("RIFF\x04\x00\x00\x00WEBP", "binary") };
+    await writeFile(join(directory, "fixture.webp"), images["fixture.webp"]);
     const assets = embedded ? Object.fromEntries(Object.entries(images).map(([name, bytes]) => [name, bytes.toString("base64")])) : undefined;
     const server = await startUiServer({ directory, assets, port: 0, getContext: () => ({}) });
     t.after(() => server.close());

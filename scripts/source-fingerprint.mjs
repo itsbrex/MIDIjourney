@@ -10,7 +10,14 @@ export async function sourceFingerprint(root, appKey) {
     "scripts/build.mjs", "scripts/build-core.mjs", "scripts/device.mjs",
     "scripts/source-fingerprint.mjs", "vendor/pollinations-ui-0.1.0-alpha.1.tgz"];
   async function collect(relative) {
-    for (const entry of await readdir(resolve(root, relative), { withFileTypes: true })) {
+    let entries;
+    try { entries = await readdir(resolve(root, relative), { withFileTypes: true }); }
+    catch (error) {
+      // The minimal UI has no public assets. Still fingerprint any added later.
+      if (relative === "app/public" && error.code === "ENOENT") return;
+      throw error;
+    }
+    for (const entry of entries) {
       if (entry.name === "test") continue;
       const name = `${relative}/${entry.name}`;
       if (entry.isDirectory()) await collect(name);
