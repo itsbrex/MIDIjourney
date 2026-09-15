@@ -19,23 +19,6 @@ host.max = {
 		original.bindInlet(name, callback);
 	},
 	outlet(action, id, raw) {
-		// UI verification only: emulate the native clipboard reply using the test browser.
-		if (action === "clipboard_read" || action === "clipboard_write") {
-			void (async () => {
-				try {
-					const text =
-						action === "clipboard_read"
-							? await navigator.clipboard.readText()
-							: undefined;
-					if (action === "clipboard_write")
-						await navigator.clipboard.writeText(JSON.parse(raw).text);
-					receive(id, JSON.stringify({ ok: true, text }));
-				} catch {
-					receive(id, JSON.stringify({ ok: false, error: "Clipboard denied" }));
-				}
-			})();
-			return;
-		}
 		if (action !== "context") return original.outlet(action, id, raw);
 		const source = ["live", "full", "other", "recording"].includes(mode)
 			? {

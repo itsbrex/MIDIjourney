@@ -27,36 +27,6 @@ host.max = {
 		receive = callback;
 	},
 	outlet: (action, id, raw) => {
-		if (
-			action === "clipboard_response_write" ||
-			action === "clipboard_write" ||
-			action === "clipboard_read"
-		) {
-			void (async () => {
-				try {
-					if (action === "clipboard_read")
-						receive(
-							id,
-							JSON.stringify({
-								ok: true,
-								text: await navigator.clipboard.readText(),
-							}),
-						);
-					else {
-						await navigator.clipboard.writeText(JSON.parse(raw).text);
-						receive(id, JSON.stringify({ ok: true }));
-					}
-				} catch {
-					receive(
-						id,
-						JSON.stringify({
-							ok: false,
-							error: "Fixture clipboard unavailable",
-						}),
-					);
-				}
-			})();
-		}
 		if (action === "context")
 			queueMicrotask(() =>
 				receive(

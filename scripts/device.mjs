@@ -41,15 +41,13 @@ export function makeDevice(directory) {
     box("init", "message", [20, 205, 35, 22], { text: "init" }),
     obj("server", `node.script ${asset("server")} @autostart 1 @watch 0`, [230, 260, 550, 22]),
     box("start", "message", [20, 260, 40, 22], { text: "start" }),
-    obj("route", "route uiurl clipboard_response panel", [230, 300, 240, 22]), obj("read", "prepend read", [230, 335, 90, 22]),
+    obj("route", "route uiurl panel", [230, 300, 240, 22]), obj("read", "prepend read", [230, 335, 90, 22]),
     obj("panel", `js ${asset("panel")}`, [600, 335, 200, 22]),
-    obj("clipboard-response", "prepend response", [440, 335, 110, 22]),
     obj("audioin", "plugin~", [20, 370, 60, 22]), obj("audioout", "plugout~", [20, 410, 60, 22]),
   ], lines: [line("open", 0, "popen"), line("popen", 0, "pcontrol"), line("pcontrol", 0, "window"),
     line("window", 0, "defer"), line("defer", 0, "bridge"), line("bridge", 0, "window"), line("bridge", 1, "server"),
     line("live", 0, "init"), line("init", 0, "bridge"), line("live", 0, "open-delay"), line("open-delay", 0, "popen"), line("retry", 0, "start"), line("start", 0, "server"),
     line("server", 0, "route"), line("route", 0, "read"), line("read", 0, "window"),
-    line("route", 1, "clipboard-response"), line("clipboard-response", 0, "window"),
-    line("route", 2, "panel"),
+    line("route", 1, "panel"),
     line("audioin", 0, "audioout", 0), line("audioin", 1, "audioout", 1)] } };
 }

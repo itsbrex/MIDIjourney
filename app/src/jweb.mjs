@@ -46,18 +46,12 @@ export function bridge(host) {
 									: "The Live connector is not responding.",
 							),
 							{
-								code: action.startsWith("clipboard_")
-									? "CLIPBOARD_CONNECTOR_TIMEOUT"
-									: "LIVE_CONNECTOR_TIMEOUT",
+								code: "LIVE_CONNECTOR_TIMEOUT",
 							},
 						),
 					);
 				},
-				action === "create"
-					? 10000
-					: action.startsWith("clipboard_")
-						? 7000
-						: 2000,
+				action === "create" ? 10000 : 2000,
 			);
 			pending.set(id, { resolve, reject, timer });
 			try {

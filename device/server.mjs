@@ -2,13 +2,6 @@ import max from "max-api";
 import { execFile } from "node:child_process";
 import { startUiServer } from "./ui-server.mjs";
 import assets from "#ui-assets";
-import { createClipboardHandler } from "./clipboard.mjs";
-
-const clipboard = createClipboardHandler({ reply: (id, value) => max.outlet("clipboard_response", id, JSON.stringify(value)) });
-max.addHandler("clipboard_read", id => clipboard("read", id));
-max.addHandler("clipboard_write", (id, raw) => clipboard("write", id, raw));
-max.addHandler("clipboard_response_write", (id, raw) => clipboard("response", id, raw));
-
 let server;
 let starting;
 let liveContext = { connected: false };
